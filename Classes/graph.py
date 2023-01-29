@@ -13,12 +13,12 @@ class Graph:
 		# for bond in bonds:
 		# 	self.add(bond.atomOne, bond.atomTwo)
 	
-	def add(self, atomOne, atomTwo):
+	def add(self, atom_one, atom_two):
 		#add connection between atomOne and atomTwo
-		self._graph[atomOne].add(atomTwo)  
-		self._graph[atomTwo].add(atomOne)
+		self._graph[atom_one].add(atom_two)  
+		self._graph[atom_two].add(atom_one)
 	
-	def remove_bonds(self, atomOne):
+	def remove_bonds(self, atom_one):
 		#remove all references to atom
 		print('test')
 	
