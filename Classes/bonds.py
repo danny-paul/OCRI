@@ -7,7 +7,7 @@ class Bond(object):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
 		self.atoms = [atom_one, atom_two]
 
-	def getAtoms(self):
+	def get_atoms(self):
 		return self.atoms
 		
 	def get_electron_bond_cost(self):
