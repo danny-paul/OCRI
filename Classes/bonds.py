@@ -15,6 +15,9 @@ class Bond(object):
 	
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
 		raise NotImplementedError
+	
+	def __str__(self):
+		raise NotImplementedError
 
 
 class IonicBond(Bond):
@@ -27,16 +30,25 @@ class IonicBond(Bond):
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
 		pass
 
+	def __str__(self):
+		pass
+
 
 # will not be instantiated
 class CovalentBond(Bond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
 		super().__init__(atom_one, atom_two)
-	
+
 	def get_electron_bond_cost(self):
 		pass
 
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
+		pass
+	
+	def __str__(self):
+		pass
+	
+	def __str__(self):
 		pass
 
 
@@ -90,8 +102,9 @@ class SingleBond(CovalentBond):
 			impossible_bond = True
 		
 		return impossible_bond
-		
-
+	
+	def __str__(self):
+		return str(hex(id(self))) + " " + "Single Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"
 
 class DoubleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
@@ -100,7 +113,9 @@ class DoubleBond(CovalentBond):
 	
 	def can_atoms_form_bond(self) -> bool:
 		pass
-
+	
+	def __str__(self):
+		return str(hex(id(self))) + " " + "Single Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"
 
 class TripleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
@@ -109,3 +124,6 @@ class TripleBond(CovalentBond):
 	
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
 		pass
+		
+	def __str__(self):
+		return str(hex(id(self))) + " " + "Single Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"

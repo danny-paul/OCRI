@@ -11,19 +11,29 @@ class Graph:
 	def add_bonds(self, bonds: list[Bond]):
 		for bond in bonds:
 			atom_one, atom_two = bond.get_atoms()
-			self.add_atoms(atom_one, atom_two)
-	
-	def add_atoms(self, atom_one: Atom, atom_two: Atom):
+			self.add_bond(atom_one, atom_two, bond)
+
+	def add_bond(self, atom_one: Atom, atom_two: Atom, bond: Bond):
 		# add dictionary entry
-		self.graph[atom_one].add(atom_two)  
-		self.graph[atom_two].add(atom_one)
+		self.graph[atom_one].add((atom_two, bond))  
+		self.graph[atom_two].add((atom_one, bond))
 	
 	def remove_bonds(self, atom_one: Atom):
 		#remove all references to atom
 		print('test')
 	
-	def testing_one(self):
-		print('works')
-	
 	def __str__(self):
-		return '{}({})'.format(self.__class__.__name__, dict(self.graph))
+		tempStr = ''
+
+		for key in self.graph.keys():
+			tempStr = tempStr + str(key) + ' : \n{\n'
+			# enumerate since sets are not iterable
+			for index, atom_bond in enumerate(self.graph[key]):
+				if index == len(self.graph[key]) - 1:
+					tempStr = tempStr + "\t" + str(atom_bond[0]) + " " + str(atom_bond[1])
+				else:
+					tempStr = tempStr + "\t" + str(atom_bond[0]) + " " + str(atom_bond[1]) + ",\n"
+			
+			tempStr += "\n}\n\n"
+		return tempStr
+		
