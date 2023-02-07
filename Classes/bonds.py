@@ -4,8 +4,13 @@ import Classes.constants as CONSTANT
 
 # will not be instantiated
 class Bond(object):
-	def __init__(self, atom_one: Atom, atom_two: Atom):
+	# electron_cost = None
+
+	def __init__(self, atom_one: Atom, atom_two: Atom, electron_cost: int):
 		self.atoms = [atom_one, atom_two]
+		self.electron_cost = electron_cost
+		if self.electron_cost == None:
+			raise NotImplementedError('Bond Subclasses must define electron_cost')
 
 	def get_atoms(self):
 		return self.atoms
@@ -16,6 +21,19 @@ class Bond(object):
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
 		raise NotImplementedError
 	
+	# Method to restore valence count to connected atoms and delete instance (self)
+	def delete_bond(self):
+		update_success: bool = False
+
+		for atom in self.atoms:
+			curr_valence_count = atom.get_remaining_val_electrons()
+			print(curr_valence_count, self.electron_cost)
+			update_success = atom.set_remaining_val_electrons(curr_valence_count + self.electron_cost)
+			if not update_success:
+				raise NameError("Could not delete the respective bonds")
+		
+	
+
 	def __str__(self):
 		raise NotImplementedError
 
@@ -23,6 +41,7 @@ class Bond(object):
 class IonicBond(Bond):
 	def __init(self, atom_one: Atom, atom_two: Atom):
 		super().__init__(atom_one, atom_two)
+		self.electron_cost = None
 	
 	def get_electron_bond_cost(self):
 		pass
@@ -36,8 +55,8 @@ class IonicBond(Bond):
 
 # will not be instantiated
 class CovalentBond(Bond):
-	def __init__(self, atom_one: Atom, atom_two: Atom):
-		super().__init__(atom_one, atom_two)
+	def __init__(self, atom_one: Atom, atom_two: Atom, electron_cost: int):
+		super().__init__(atom_one, atom_two, electron_cost)
 
 	def get_electron_bond_cost(self):
 		pass
@@ -54,14 +73,14 @@ class CovalentBond(Bond):
 
 class SingleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
-		super().__init__(atom_one, atom_two)
 		# hydrogen will be the only exception with 1 valence electron
-		self.electron_cost = CONSTANT.SINGLE_BOND_COST 
+		# self.electron_cost = CONSTANT.SINGLE_BOND_COST 
+		super().__init__(atom_one, atom_two, CONSTANT.SINGLE_BOND_COST)
 			
 	def get_electron_bond_cost(self):
 		return self.electron_cost
 	
-	# return boolean on ability of two parameter atoms ablity to bond based purely on remaining valence electron count
+	# return boolean on ability of two parameter atoms ablity to bond
 	@staticmethod
 	def can_atoms_form_bond(atom_one: Atom, atom_two: Atom) -> bool:
 		# hydrogen will be the only exception with 1 valence electron
@@ -103,19 +122,28 @@ class SingleBond(CovalentBond):
 		
 		return impossible_bond
 	
+	# Method to restore valence count to connected atoms and delete instance (self)
+	# def delete_bond(self):
+	# 	for atom in self.atoms:
+	# 		curr_valence_count = atom.get_remaining_val_electrons()
+	# 		update_success: bool = atom.set_remaining_val_electrons(curr_valence_count + self.electron_cost)
+	# 		if not update_success:
+	# 			raise NameError('bonds.py delete_bond(); could not perform atom.set_remaining_val_electrons')
+
+
 	def __str__(self):
 		return str(hex(id(self))) + " " + "Single Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"
 
 class DoubleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
-		super().__init__(atom_one, atom_two)
-		self.electron_cost = CONSTANT.DOUBLE_BOND_COST
+		super().__init__(atom_one, atom_two, CONSTANT.DOUBLE_BOND_COST)
+		# self.electron_cost = CONSTANT.DOUBLE_BOND_COST
 	
 	def can_atoms_form_bond(self) -> bool:
 		pass
 	
 	def __str__(self):
-		return str(hex(id(self))) + " " + "Single Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"
+		return str(hex(id(self))) + " " + "Double Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"
 
 class TripleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
@@ -126,4 +154,4 @@ class TripleBond(CovalentBond):
 		pass
 		
 	def __str__(self):
-		return str(hex(id(self))) + " " + "Single Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"
+		return str(hex(id(self))) + " " + "Triple Bond" + "=(" + str(self.atoms[0]) + ", " + str(self.atoms[1]) + ")"

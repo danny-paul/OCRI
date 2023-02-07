@@ -10,30 +10,42 @@ class Graph:
 
 	def add_bonds(self, bonds: list[Bond]):
 		for bond in bonds:
-			atom_one, atom_two = bond.get_atoms()
-			self.add_bond(atom_one, atom_two, bond)
+			self.add_bond(bond)
 
-	def add_bond(self, atom_one: Atom, atom_two: Atom, bond: Bond):
+	def add_bond(self, bond: Bond):
+		atom_one, atom_two = bond.get_atoms()
 		# add dictionary entry
 		self.graph[atom_one].add((atom_two, bond))  
 		self.graph[atom_two].add((atom_one, bond))
-	
-	def remove_bonds(self, atom_one: Atom):
-		#remove all references to atom
+
+	def remove_bonds(self, reference_atom: Atom):
+		# remove all bonds to a given atom, restore valence electrons to atoms- atoms are preserved, bonds are deleted
+		for atom_bond_tuple in self.graph[reference_atom]:
+			connected_atom = atom_bond_tuple[0]
+			bond: Bond = atom_bond_tuple[1]
+			bond.delete_bond()
+			
+
+
+
+	def remove_bond(self, bond: Bond):
+		# remove bond, keep the atoms
 		print('test')
 	
 	def __str__(self):
 		tempStr = ''
 
-		for key in self.graph.keys():
-			tempStr = tempStr + str(key) + ' : \n{\n'
+		for atom_as_key in self.graph.keys():
+			tempStr = tempStr + str(atom_as_key) + ' : \n{\n'
+
 			# enumerate since sets are not iterable
-			for index, atom_bond in enumerate(self.graph[key]):
-				if index == len(self.graph[key]) - 1:
-					tempStr = tempStr + "\t" + str(atom_bond[0]) + " " + str(atom_bond[1])
+			for index, tuple_of_atom_bond in enumerate(self.graph[atom_as_key]):
+				if index == len(self.graph[atom_as_key]) - 1:
+					tempStr = tempStr + "\t" + str(tuple_of_atom_bond[0]) + " " + str(tuple_of_atom_bond[1])
 				else:
-					tempStr = tempStr + "\t" + str(atom_bond[0]) + " " + str(atom_bond[1]) + ",\n"
+					tempStr = tempStr + "\t" + str(tuple_of_atom_bond[0]) + " " + str(tuple_of_atom_bond[1]) + ",\n"
 			
 			tempStr += "\n}\n\n"
+
 		return tempStr
 		
