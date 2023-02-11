@@ -1,10 +1,10 @@
 # You cannot declare constants in python, so this is the next best thing
 
 # Bond costs for each atom in the bond
-SINGLE_BOND_COST = 2
-SINGLE_BOND_COST_HYDROGEN = 1 # hydrogen costs 1 electron only
-DOUBLE_BOND_COST = 4
-TRIPLE_BOND_COST = 6
+SINGLE_BOND_COST = 1
+#SINGLE_BOND_COST_HYDROGEN = 1 # hydrogen costs 1 electron only
+DOUBLE_BOND_COST = 2
+TRIPLE_BOND_COST = 3
 
 # Max electron count for atoms
 CARBON_FULL_ELEC_COUNT = 8
@@ -25,3 +25,12 @@ HELIUM_VAL_ELEC_COUNT = 2
 MAGNESIUM_VAL_ELEC_COUNT = 2
 
 HYDROGEN_VAL_ELEC_COUNT = 1 
+HYDROGEN_FULL_ELEC_COUNT = 2
+
+CANNOT_BOND_TO_SAME_TYPE = {
+	"He": True,
+	"C": False,
+	"H": False,
+	"B": False,
+	"O": False
+}
