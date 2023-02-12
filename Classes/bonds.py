@@ -2,7 +2,6 @@ from Classes.atom import Atom
 import Classes.constants as CONSTANT
 
 
-# will not be instantiated
 class Bond(object):
 	def __init__(self, atom_one: Atom, atom_two: Atom, electron_cost: int):
 		self.electron_cost = electron_cost
@@ -20,15 +19,15 @@ class Bond(object):
 		raise NotImplementedError
 	
 	# Method to restore valence count to connected atoms and delete instance (self)
-	def delete_bond(self):
-		update_success: bool = False
+	# def delete_bond(self):
+	# 	update_success: bool = False
 
-		for atom in self.atoms:
-			curr_valence_count = atom.get_shared_val_electrons()
-			print(curr_valence_count, self.electron_cost)
-			update_success = atom.set_shared_val_electrons(curr_valence_count + self.electron_cost)
-			if not update_success:
-				raise NameError("Could not delete the respective bonds")
+	# 	for atom in self.atoms:
+	# 		curr_valence_count = atom.get_shared_val_electrons()
+	# 		print(curr_valence_count, self.electron_cost) # test
+	# 		update_success = atom.set_shared_val_electrons(curr_valence_count + self.electron_cost)
+	# 		if not update_success:
+	# 			raise NameError("Could not delete the respective bonds")
 		
 	def __str__(self):
 		raise NotImplementedError
@@ -49,7 +48,6 @@ class IonicBond(Bond):
 		pass
 
 
-# will not be instantiated
 class CovalentBond(Bond):
 	def __init__(self, atom_one: Atom, atom_two: Atom, electron_cost: int):
 		if not CovalentBond.can_atoms_form_bond(atom_one, atom_two, electron_cost):
@@ -59,33 +57,56 @@ class CovalentBond(Bond):
 			raise NameError("Bonding Invalid, please check for valid bond before bond instantiation via \"CovelentBond.can_atoms_form_bond(atom_one, atom_two, CONSTANT.'BondType') function\". Error Details:\n" + atom_error_one + atom_error_two + bond_error)
 
 		super().__init__(atom_one, atom_two, electron_cost)
-		self.share_electrons(atom_one, atom_two)
+		self.share_electrons()
 
 	# represents the sharing of atoms across the formed bond between the two atoms
 	# updates the electron count for participating atoms respective to bond formed
-	def share_electrons(self, atom_one: Atom, atom_two: Atom):
-		atom_one_new_total_elec_count = atom_one.get_shared_val_electrons() + atom_one.get_base_val_electrons() + self.get_electron_bond_cost()
-		atom_two_new_total_elec_count = atom_two.get_shared_val_electrons() + atom_two.get_base_val_electrons() + self.get_electron_bond_cost()
+	def share_electrons(self):
+		atoms = self.get_atoms()
+		index = 1
+		atom_error_dict = {
+			1:"One",
+			2:"Two"
+		}
 
-		#print('atom_one_new_total_elec_count: ' + str(atom_one_new_total_elec_count)) # testing
-		#print('atom_two_new_total_elec_count: ' + str(atom_two_new_total_elec_count) + '\n') # testing
-		if atom_one_new_total_elec_count > atom_one.get_max_valence_electrons():
-			atom_error_one = "Issue-->Atom One:\n\t" + str(atom_one) + "\n"
-			atom_error_two = "Atom Two:\n\t" + str(atom_two) + "\n"
-			bond_error = "Desired Bond:\n\t" + str(self.__class__.__name__) + " with cost: " + str(self.get_electron_bond_cost())
-			raise NameError("Something went wrong, bond class should prevent the number of shared electrons exceeding the max amount of electrons for that given atom. Corresponds to:\n"  + atom_error_one + atom_error_two + bond_error)
+		for atom in atoms:
+			atom_new_total_elec_count = atom.get_shared_val_electrons() + atom.get_base_val_electrons() + self.get_electron_bond_cost()
 
-		if atom_two_new_total_elec_count > atom_two.get_max_valence_electrons():
-			atom_error_one = "Atom One:\n\t" + str(atom_one) + "\n"
-			atom_error_two = "Issue-->Atom Two:\n\t" + str(atom_two) + "\n"
-			bond_error = "Desired Bond:\n\t" + str(self.__class__) + " with cost: " + str(self.get_electron_bond_cost())
-			raise NameError("Something went wrong, bond class should prevent the number of shared electrons exceeding the max amount of electrons for that given atom. Corresponds to:\n" + atom_error_one + atom_error_two + bond_error)
+			if atom_new_total_elec_count > atom.get_max_valence_electrons():
+				#print('atom_new_total_elec_count: ' + str(atom_new_total_elec_count)) # testing
+				error_in_atom = "Atom " + str(atom_error_dict[index]) + " contains the problem\n"
+				atom_error_one = "Atom One:\n\t" + str(atoms[0]) + "\n"
+				atom_error_two = "Atom Two:\n\t" + str(atoms[1]) + "\n"
+				bond_error = "Desired Bond:\n\t" + str(self.__class__.__name__) + " with cost: " + str(self.get_electron_bond_cost())
+				raise NameError("Something went wrong, bond class should prevent the number of shared electrons exceeding the max amount of electrons for that given atom. Corresponds to:\n" + error_in_atom  + atom_error_one + atom_error_two + bond_error)
 
-		atom_one.set_shared_val_electrons(atom_one.get_shared_val_electrons() + self.get_electron_bond_cost())
-		atom_two.set_shared_val_electrons(atom_two.get_shared_val_electrons() + self.get_electron_bond_cost())
+			atom.set_shared_val_electrons(atom.get_shared_val_electrons() + self.get_electron_bond_cost())
+			index += 1
 	
-	def unshare_electrons(self, atom_one: Atom, atom_two: Atom):
-		print('temp')
+	def unshare_electrons(self):
+		atoms = self.get_atoms()
+
+		index = 1
+		atom_error_dict = {
+			1:"One",
+			2:"Two"
+		}
+
+		for atom in atoms:
+			# check to ensure not < 0
+			# this should never be an issue since adding bonds prevents invalid bonding-->thus breaking valid bonds should result in valid atoms
+			atom_new_shared_elec_count = atom.get_shared_val_electrons() - self.get_electron_bond_cost()
+
+			if (atom_new_shared_elec_count < 0):
+				# print('atom_new_shared_elec_count: ' + str(atom_new_shared_elec_count)) # testing
+				error_in_atom = "Atom " + str(atom_error_dict[index]) + " contains the problem\n"
+				atom_error_one = "Atom One:\n\t" + str(atoms[0]) + "\n"
+				atom_error_two = "Atom Two:\n\t" + str(atoms[1]) + "\n"
+				bond_error = "Desired Bond:\n\t" + str(self.__class__.__name__) + " with cost: " + str(self.get_electron_bond_cost())
+				raise NameError("Something went wrong, bond class should prevent the number of shared electrons exceeding the max amount of electrons for that given atom. Corresponds to:\n" + error_in_atom  + atom_error_one + atom_error_two + bond_error)
+			
+			atom.set_shared_val_electrons(atom_new_shared_elec_count)
+			index += 1
 
 
 	# Method to determine impossible bonding on issues OTHER than valence electron count (eg: same atom bonded)

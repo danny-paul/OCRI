@@ -11,7 +11,11 @@ import pprint
 def main():
 	print("\n\n")
 	pretty_print = pprint.PrettyPrinter()
-	valid_graph = produce_valid_molecule()
+	valid_graph, bond_one, oxygenOne = produce_valid_molecule()
+	print(valid_graph)
+	#valid_graph.remove_bond_via_bond_obj(bond_one)
+	valid_graph.remove_bonds_to_atom(oxygenOne)
+	print('-------------------------------------------------------------------\n')
 	print(valid_graph)
 
 # returns graph of a valid molecule ("see presentation 3 for the example molecule")
@@ -31,21 +35,32 @@ def produce_valid_molecule():
 
 	oxygenOne = Atom("O", CONSTANT.OXYGEN_VAL_ELEC_COUNT, 0, CONSTANT.OXYGEN_FULL_ELEC_COUNT)
 
-	# bonds
-	bond_list: list[Bond] = [\
-		SingleBond(carbonOne, hydrogenOne), \
-		SingleBond(carbonOne, hydrogenTwo), \
-		SingleBond(carbonOne, hydrogenThree), \
-		SingleBond(carbonOne, carbonThree), \
-		SingleBond(carbonTwo, hydrogenFour), \
-		SingleBond(carbonTwo, hydrogenFive), \
-		DoubleBond(carbonTwo, carbonThree), \
-		SingleBond(carbonThree, oxygenOne), \
-		SingleBond(oxygenOne, hydrogenSix)]
+	# bonds	
+	bond_one = SingleBond(carbonOne, hydrogenOne)
+	bond_two = SingleBond(carbonOne, hydrogenTwo)
+	bond_three = SingleBond(carbonOne, hydrogenThree)
+	bond_four = SingleBond(carbonOne, carbonThree)
+	bond_five = SingleBond(carbonTwo, hydrogenFour)
+	bond_six = SingleBond(carbonTwo, hydrogenFive)
+	bond_seven = DoubleBond(carbonTwo, carbonThree)
+	bond_eight = SingleBond(carbonThree, oxygenOne)
+	bond_nine = SingleBond(oxygenOne, hydrogenSix)
+
+
+	bond_list: list[Bond] = \
+		[bond_one, \
+			 bond_two, \
+				 bond_three, \
+					 bond_four, \
+						 bond_five, \
+							 bond_six, \
+								 bond_seven, \
+									 bond_eight, \
+										 bond_nine ]
 
 	valid_molecule_graph = Graph(bond_list)
 
-	return valid_molecule_graph
+	return valid_molecule_graph, bond_nine, oxygenOne
 
 
 if __name__ == "__main__":
