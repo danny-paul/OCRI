@@ -59,8 +59,8 @@ class CovalentBond(Bond):
 		super().__init__(atom_one, atom_two, electron_cost)
 		self.share_electrons()
 
-	# represents the sharing of atoms across the formed bond between the two atoms
-	# updates the electron count for participating atoms respective to bond formed
+	# Represents the sharing of atoms across the formed bond between the two atoms
+	# Updates the electron count for participating atoms respective to bond formed
 	def share_electrons(self):
 		atoms = self.get_atoms()
 		index = 1
@@ -83,6 +83,8 @@ class CovalentBond(Bond):
 			atom.set_shared_val_electrons(atom.get_shared_val_electrons() + self.get_electron_bond_cost())
 			index += 1
 	
+	# Represents the removal of a bond and the replenishing of originally shared electrons
+	# Updates the electron count for participating atoms respective to bond removal
 	def unshare_electrons(self):
 		atoms = self.get_atoms()
 
@@ -124,7 +126,7 @@ class CovalentBond(Bond):
 
 		return impossible_bond
 
-	# return boolean on ability of two parameter atoms ablity to bond. Since static must include electron count (cannot self.get())
+	# Return boolean on ability of two parameter atoms ablity to bond. Since static must include electron count (cannot self.get())
 	@staticmethod
 	def can_atoms_form_bond(atom_one: Atom, atom_two: Atom, electron_bond_cost: int) -> bool:
 		valid_bond: bool = not CovalentBond.impossible_bonding(atom_one, atom_two)

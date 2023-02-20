@@ -1,7 +1,10 @@
+import Classes.constants as CONSTANT
+
 class Atom:
 	def __init__(self, atom_type: str, base_val_electrons: int, shared_val_electrons: int, full_electron_config: int):
 		# will need to restrict type to a list of predefined values else raise error
 		self.atom_type = atom_type
+		self.atom_type_full = CONSTANT.ATOM_SYMBOL_TO_NAME_DICT[self.atom_type]
 		self.full_electron_config = full_electron_config # number of electrons req'd to have outer shell stable
 		self.base_val_electrons = base_val_electrons # valence electrons available when no bonding present
 		self.shared_val_electrons = shared_val_electrons # electrons shared (base - shared >= 0)
@@ -9,6 +12,9 @@ class Atom:
 	def get_type(self):
 		return self.atom_type
 	
+	def get_type_full(self):
+		return self.atom_type_full
+		
 	def get_base_val_electrons(self):
 		return self.base_val_electrons
 
