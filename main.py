@@ -14,33 +14,76 @@ def main():
 
 	# print original molecule (no removals)
 	print("\n\n")
-	valid_graph, bond_one, oxygenOne, hydrogenSix = produce_valid_molecule()
-	print(valid_graph)
-
-	# remove bonds to oxygenOne and print molecule again
-	valid_graph.remove_bonds_to_atom(oxygenOne)
 	print('-------------------------------------------------------------------\n')
+	print('original')
+	valid_graph, bond_one, oxygenOne, hydrogenSix, carbonTwo = produce_valid_molecule()
 	print(valid_graph)
+	pretty_print.pprint(valid_graph.get_mapped_address())
+	print()
+	pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	print('-------------------------------------------------------------------\n')
 	print("\n\n")
-	print('-------------------------------------------------------------------\n')
+
+	# # remove bonds to oxygenOne and print molecule again
+	# print('-------------------------------------------------------------------\n')
+	# valid_graph.remove_bonds_to_atom(oxygenOne)
+	# print('removed BONDS TO oxygenOne')
+	# print(valid_graph)
+	# pretty_print.pprint(valid_graph.get_mapped_address())
+	# print()
+	# pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	# print('-------------------------------------------------------------------\n')
+	# print("\n\n")
 
 	# remove oxygenOne and hydrogen six and print molecule again
+	print('-------------------------------------------------------------------\n')
 	valid_graph.delete_atoms_via_atom_list([oxygenOne, hydrogenSix])
+	print('deleted OxygenOne and HydrogenSix')
 	print(valid_graph)
-
-	# print dictionary to map key
-	print('Mapped Hex address (key) to Common Name (value)')
 	pretty_print.pprint(valid_graph.get_mapped_address())
-	print('\n')
-
-	# print atom count dictionary
-	print('Mapped common name (key) to count of them in the molecule (value)')
+	print()
 	pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	print('-------------------------------------------------------------------\n')
+	print("\n\n")
 
-	print('\n')
-	valid_graph.add_node_via_atom_obj(Atom("C", 4, 0, 8))
+	print('-------------------------------------------------------------------\n')
+	print('Adding node atom, Atom Oxygen')
+	newOxygen = Atom("O", 6, 0, 8)
+	valid_graph.add_node_via_atom_obj(newOxygen)
 	print(valid_graph)
+	pretty_print.pprint(valid_graph.get_mapped_address())
+	print()
+	pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	print('-------------------------------------------------------------------\n')
 
+	print('-------------------------------------------------------------------\n')
+	print('Adding node atom, Atom Hydrogen')
+	newHydrogen = Atom("H", 1, 0, 2)
+	valid_graph.add_node_via_atom_obj(newHydrogen)
+	print(valid_graph)
+	pretty_print.pprint(valid_graph.get_mapped_address())
+	print()
+	pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	print('-------------------------------------------------------------------\n')
+
+	print('-------------------------------------------------------------------\n')
+	print('Adding bond between non connected node atoms, oxygen1 and hydrogen 6')
+	valid_graph.add_bond_via_bond_obj(SingleBond(newOxygen, newHydrogen))
+	print(valid_graph)
+	pretty_print.pprint(valid_graph.get_mapped_address())
+	print()
+	pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	print('-------------------------------------------------------------------\n')
+
+
+	print('-------------------------------------------------------------------\n')
+	print('Adding bond between non connected nodes, oxygen1 and ')
+	valid_graph.add_bond_via_bond_obj(SingleBond(newOxygen, carbonTwo))
+	print(valid_graph)
+	pretty_print.pprint(valid_graph.get_mapped_address())
+	print()
+	pretty_print.pprint(valid_graph.get_mapped_address_counts())
+	print('-------------------------------------------------------------------\n')
 
 
 # returns graph of a valid molecule ("see presentation 3 for the example molecule")
@@ -91,9 +134,7 @@ def produce_valid_molecule():
 		print(e)
 
 
-	print("\n\nAfter failed bond formation, program still running\n\n")
-
-	return valid_molecule_graph, bond_nine, oxygenOne, hydrogenSix
+	return valid_molecule_graph, bond_nine, oxygenOne, hydrogenSix, carbonThree
 
 
 	# can form bonding
