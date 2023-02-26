@@ -131,3 +131,6 @@ dmypy.json
 # additional
 OCRI.code-workspace
 atomSymbolsAndNames.txt
+
+# ignore model_v3 since git wants to chagne LF --> CRLF which breaks the model
+model_v3

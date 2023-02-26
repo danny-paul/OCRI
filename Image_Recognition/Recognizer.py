@@ -14,7 +14,9 @@ from matplotlib import cm
 
 import os
 
-def recognizer():
+from collections import defaultdict
+
+def recognize():
     crop1 = 50
     crop2 = 1000
     crop3 = 50
@@ -270,11 +272,52 @@ def showImages(image, gray, cropped):
 
     plt.show()
 
+# takes list of lines and reduces them to the absolute necessary values
+def process_lines():
+    print()
 
 
+class mapped_node:
+    def __init__(self, type_is: str, x: int, y: int, width: int, height: int):
+        self.type = type_is
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.associated_edges = list[mapped_edge]
+        
 
+class mapped_edge:
+    def __init__(self, list_of_lines: list[tuple, tuple], type_is= "unknown"):
+        self.list_of_lines = list_of_lines
+        self.type = type_is
+        self.avg_coordinate_line_start: tuple = self.calc_avg_line_start()
+        self.avg_coordinate_line_end: tuple = self.calc_avg_line_end()
+    
+    def calc_avg_line_start(self):
+        line_start_tuple = (2, 2)
+        return line_start_tuple
+    
+    def calc_avg_line_end(self):
+        line_end_tuple = (4, 4)
+        return line_end_tuple
+    
+    def determine_type(self):
+        return "Single Bond"
+            
 
-
+class edge_map:
+    def __init__(self, edge_list = list[mapped_edge], edgeless_nodes = list[mapped_node]):
+        self.graph = defaultdict(set) # key = edge, value = set of atoms (2)
+        self.edge_list = edge_list
+        self.edgeless_nodes = edgeless_nodes
+            
+    def add_edge(self, edge: mapped_edge):
+        print()
+        
+    def associate_node_with_edge(self, edge: mapped_edge):
+        print()
+            
 
 
                         

@@ -14,7 +14,7 @@ import Image_Recognition.Recognizer as Recognizer
 
 def main():
 	pretty_print = pprint.PrettyPrinter()
-	letterBoxes, lines = Recognizer.recognizer()
+	letterBoxes, lines = Recognizer.recognize()
 
 	pretty_print.pprint(letterBoxes)
 	pretty_print.pprint(lines)
@@ -25,7 +25,7 @@ def main():
 
 	# pretty_print = pprint.PrettyPrinter()
 
-	# print original molecule (no removals)
+	# # print original molecule (no removals)
 	# print("\n\n")
 	# print('-------------------------------------------------------------------\n')
 	# print('original')
@@ -80,7 +80,7 @@ def main():
 	# print('-------------------------------------------------------------------\n')
 
 	# print('-------------------------------------------------------------------\n')
-	# print('Adding bond between non connected node atoms, oxygen1 and hydrogen 6')
+	# print('Adding bond between non connected node atoms, newOxygen and newHydrogen')
 	# valid_graph.add_bond_via_bond_obj(SingleBond(newOxygen, newHydrogen))
 	# print(valid_graph)
 	# pretty_print.pprint(valid_graph.get_mapped_address())
@@ -90,7 +90,7 @@ def main():
 
 
 	# print('-------------------------------------------------------------------\n')
-	# print('Adding bond between non connected nodes, oxygen1 and ')
+	# print('Adding bond between non connected nodes, newOxygen and carbonTwo')
 	# valid_graph.add_bond_via_bond_obj(SingleBond(newOxygen, carbonTwo))
 	# print(valid_graph)
 	# pretty_print.pprint(valid_graph.get_mapped_address())
