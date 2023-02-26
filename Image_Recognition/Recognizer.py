@@ -21,14 +21,14 @@ def recognizer():
     crop4 = 2500
 
     #loads the model with the keras load_model function
-    model_path = os.getcwd() + '\\model_v3\\'
+    model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
     print("Loading NN model...")
     model = load_model(model_path)
     print("Done")
 
     #image_path = 'handwriting_example1_resized.png'
     image_filename = 'ciltest2.png'
-    image_path = os.getcwd() + '\\Images\\'
+    image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
     image = cv2.imread(image_path + image_filename)
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -183,7 +183,7 @@ def recognizer():
     lineImage = lsd.drawSegments(WithChars, lines)
 
     #Show image
-    cv2.imshow("LSD", lineImage)
+    #cv2.imshow("LSD", lineImage)
     #plt.show()
 
     return letterBoxes, lines
@@ -269,12 +269,6 @@ def showImages(image, gray, cropped):
     ax.set_title('cropped image');
 
     plt.show()
-    
-    
-
-print(recognizer())
-
-
 
 
 
