@@ -9,15 +9,21 @@ import Classes.constants as CONSTANT
 
 import pprint
 
-import Image_Recognition.RecognizerDanny as RecognizerDanny
+# import Image_Recognition.RecognizerDanny as RecognizerDanny
+import Image_Recognition.RecognizerKevin as RecognizerKevin
 
 
 def main():
 	pretty_print = pprint.PrettyPrinter()
-	letterBoxes, lines = RecognizerDanny.recognize()
-
-	pretty_print.pprint(letterBoxes)
-	pretty_print.pprint(lines)
+	# letterBoxes, lines = RecognizerDanny.recognize()
+	letterBoxes, lines = RecognizerKevin.recognize()
+	letterBoxes, edgeMap = RecognizerKevin.mapEdges(letterBoxes, lines)
+	print('\n\n')
+	print(letterBoxes)
+	print('\n\n')
+	print(edgeMap)
+	# pretty_print.pprint(letterBoxes)
+	# pretty_print.pprint(lines)
 
 
 

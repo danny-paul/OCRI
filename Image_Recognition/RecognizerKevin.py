@@ -1,6 +1,6 @@
 #from https://deepnote.com/@davidespalla/Recognizing-handwriting-with-Tensorflow-and-OpenCV-cfc4acf5-188e-4d3b-bdb5-a13aa463d2b0
 
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 from PIL import Image
 import tensorflow as tf
 import cv2
@@ -13,174 +13,176 @@ from imutils.contours import sort_contours
 from matplotlib import cm
 import math
 
-def recognizer():
-    crop1 = 0
-    crop2 = 1000
-    crop3 = 0
-    crop4 = 3000
+import os
 
-    #loads the model with the keras load_model function
-    model_path = 'model_v3'
-    print("Loading NN model...")
-    model = load_model(model_path)
-    print("Done")
+def recognize():
+	crop1 = 0
+	crop2 = 1000
+	crop3 = 0
+	crop4 = 3000
 
-    #image_path = 'handwriting_example1_resized.png'
-    image_path = 'PenTest2.png'
-    image = cv2.imread(image_path)
+	#loads the model with the keras load_model function
+	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
+	print("Loading NN model...")
+	model = load_model(model_path)
+	print("Done")
+    
+	image_filename = 'PenTest2.png'
+	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
+	image = cv2.imread(image_path + image_filename)
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    cropped = gray[crop1:crop2, crop3:crop4]
-    blurred = cv2.GaussianBlur(cropped, (5, 5), 0)
+	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	cropped = gray[crop1:crop2, crop3:crop4]
+	blurred = cv2.GaussianBlur(cropped, (5, 5), 0)
 
     #for testing
     #showImages(image, gray, cropped)
 
     #convert to pure black and white
-    blurred = pureBlackWhite(blurred)
+	blurred = pureBlackWhite(blurred)
 
     #plt.imshow(blurred,cmap=cm.binary_r)
     #plt.show()      #testing, show images used for recognition
 
     #perform edge detection, find contours in the edge map, and sort the
     #resulting contours from left-to-right
-    edged = cv2.Canny(blurred, 30, 250) #low_threshold, high_threshold
-    cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    cnts = sort_contours(cnts, method="left-to_right")[0]
+	edged = cv2.Canny(blurred, 30, 250) # low_threshold, high_threshold
+	cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	cnts = imutils.grab_contours(cnts)
+	cnts = sort_contours(cnts, method="left-to_right")[0]
 
-    figure = plt.figure(figsize=(7,7))
-    plt.axis('off');
-    plt.imshow(edged,cmap=cm.binary_r);
+	figure = plt.figure(figsize=(7,7))
+	plt.axis('off');
+	plt.imshow(edged,cmap=cm.binary_r);
 
-    chars = []
+	chars = []
     # loop over the contours
-    for c in cnts:
-        # compute the bounding box of the contour and isolate ROI
-        (x, y, w, h) = cv2.boundingRect(c)
-        roi = cropped[y:y + h, x:x + w]
-      
-        #binarize image, finds threshold with OTSU method
-        thresh = cv2.threshold(roi, 0, 255,cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-      
-        # resize largest dimension to input size
-        (tH, tW) = thresh.shape
-        #print('tH', tH)
-        #print('tW', tW)
-        if tW / tH < 28 and tH / tW < 28:  #for propper dimensions, no abnormally long or tall images
-            if tW > tH:
-                thresh = imutils.resize(thresh, width=28)
+	for c in cnts:
+		# compute the bounding box of the contour and isolate ROI
+		(x, y, w, h) = cv2.boundingRect(c)
+		roi = cropped[y:y + h, x:x + w]
+		
+		#binarize image, finds threshold with OTSU method
+		thresh = cv2.threshold(roi, 0, 255,cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+		
+		# resize largest dimension to input size
+		(tH, tW) = thresh.shape
+		#print('tH', tH)
+		#print('tW', tW)
+		if tW / tH < 28 and tH / tW < 28:  #for propper dimensions, no abnormally long or tall images
+			if tW > tH:
+				thresh = imutils.resize(thresh, width=28)
             # otherwise, resize along the height
-            else:
-                thresh = imutils.resize(thresh, height=28)
+			else:
+				thresh = imutils.resize(thresh, height=28)
 
         # find how much is needed to pad
-        (tH, tW) = thresh.shape
-        dX = int(max(0, 28 - tW) / 2.0)
-        dY = int(max(0, 28 - tH) / 2.0)
-        # pad the image and force 28 x 28 dimensions
-        padded = cv2.copyMakeBorder(thresh, top=dY, bottom=dY,
-        left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
-        value=(0, 0, 0))
-        padded = cv2.resize(padded, (28, 28))
-        # reshape and rescale padded image for the model
-        padded = padded.astype("float32") / 255.0
-        padded = np.expand_dims(padded, axis=-1)
-        # append image and bounding box data in char list
-        chars.append((padded, (x, y, w, h)))
+		(tH, tW) = thresh.shape
+		dX = int(max(0, 28 - tW) / 2.0)
+		dY = int(max(0, 28 - tH) / 2.0)
+		# pad the image and force 28 x 28 dimensions
+		padded = cv2.copyMakeBorder(thresh, top=dY, bottom=dY,
+		left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
+		value=(0, 0, 0))
+		padded = cv2.resize(padded, (28, 28))
+		# reshape and rescale padded image for the model
+		padded = padded.astype("float32") / 255.0
+		padded = np.expand_dims(padded, axis=-1)
+		# append image and bounding box data in char list
+		chars.append((padded, (x, y, w, h)))
 
     # plot isolated characters
-    n_cols = 10
-    n_rows = int(np.floor(len(chars)/ n_cols)+1)
-    fig = plt.figure(figsize=(1.5*n_cols,1.5*n_rows))
-    for i,char in enumerate(chars):
-        ax = plt.subplot(n_rows,n_cols,i+1)
-        ax.imshow(char[0][:,:,0],cmap=cm.binary,aspect='auto')
-        plt.axis('off')
-    plt.tight_layout()
-    #plt.show()
+	n_cols = 10
+	n_rows = int(np.floor(len(chars)/ n_cols)+1)
+	fig = plt.figure(figsize=(1.5*n_cols,1.5*n_rows))
+	for i,char in enumerate(chars):
+		ax = plt.subplot(n_rows,n_cols,i+1)
+		ax.imshow(char[0][:,:,0],cmap=cm.binary,aspect='auto')
+		plt.axis('off')
+	plt.tight_layout()
+	#plt.show()
 
-    boxes = [b[1] for b in chars]
-    chars = np.array([c[0] for c in chars], dtype="float32")
-    #OCR the characters using our handwriting recognition model
-    preds = model.predict(chars)
-    #define the list of label names
-    labelNames = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt"
+	boxes = [b[1] for b in chars]
+	chars = np.array([c[0] for c in chars], dtype="float32")
+	#OCR the characters using our handwriting recognition model
+	preds = model.predict(chars)
+	#define the list of label names
+	labelNames = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt"
 
-    image = cv2.imread(image_path)
-    grayImage = cv2.imread(image_path, 0)   #important for line segment detection
-    cropped = image[crop1:crop2,crop3:crop4]
-    cropped2 = grayImage[crop1:crop2,crop3:crop4]     #cropped 2 will omit characters, to detect lines
+	image = cv2.imread(image_path + image_filename)
+	grayImage = cv2.imread(image_path + image_filename, 0)   #important for line segment detection
+	cropped = image[crop1:crop2,crop3:crop4]
+	cropped2 = grayImage[crop1:crop2,crop3:crop4]     #cropped 2 will omit characters, to detect lines
 
-    #recognize letters letter
-    letterBoxes = []
-    for (pred, (x, y, w, h)) in zip(preds, boxes):
-        pred = modifyPreds(pred)    #only use certain characters
-        
-        #find the index of the label with the largest corresponding
-        #probability, then extract the probability and label
-        i = np.argmax(pred)
-        prob = pred[i]
-        label = labelNames[i]
-        #draw the prediction on the image and it's probability
-        label_text = f"{label}, {prob * 100:.1f}%"
-        if (prob >= .7) and (w > 10) and (h > 10) and (h/w < 5) and (w/h < 5):
-            cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
-            cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-            letterBoxes.append((x, y, w, h, label))
+	#recognize letters letter
+	letterBoxes = []
+	for (pred, (x, y, w, h)) in zip(preds, boxes):
+		pred = modifyPreds(pred)    #only use certain characters
+		
+		#find the index of the label with the largest corresponding
+		#probability, then extract the probability and label
+		i = np.argmax(pred)
+		prob = pred[i]
+		label = labelNames[i]
+		#draw the prediction on the image and it's probability
+		label_text = f"{label}, {prob * 100:.1f}%"
+		if (prob >= .7) and (w > 10) and (h > 10) and (h/w < 5) and (w/h < 5):
+			cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
+			cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
+			cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+			letterBoxes.append((x, y, w, h, label))
 
-    WithChars = cropped     #image with characters, used for printing
-    NoChars = cropped2      #image without characters, used for line segment detection
+	WithChars = cropped     #image with characters, used for printing
+	NoChars = cropped2      #image without characters, used for line segment detection
 
-    NoChars = cv2.GaussianBlur(NoChars, (5, 5), 0)
-    #NoChars = pureBlackWhite(NoChars)
+	NoChars = cv2.GaussianBlur(NoChars, (5, 5), 0)
+	#NoChars = pureBlackWhite(NoChars)
 
-    #line segment detection
-    #from https://stackoverflow.com/questions/41329665/linesegmentdetector-in-opencv-3-with-python
+	#line segment detection
+	#from https://stackoverflow.com/questions/41329665/linesegmentdetector-in-opencv-3-with-python
 
-    #create default parametrization LSD
-    lsd = cv2.createLineSegmentDetector(0)  #find out what 0 means
+	#create default parametrization LSD
+	lsd = cv2.createLineSegmentDetector(0)  #find out what 0 means
 
-    #Detect lines in the image
-    lines = lsd.detect(NoChars)[0] #position 0 of the retuned tuple are the detected lines
+	#Detect lines in the image
+	lines = lsd.detect(NoChars)[0] #position 0 of the retuned tuple are the detected lines
 
-    cv2.imshow("LSD input image", NoChars)
+	cv2.imshow("LSD input image", NoChars)
 
-    #get rid of unnessessary lines
-    avgW, avgH = avgWH(letterBoxes)
-    avgSquare = (avgW + avgH)/2
-    lines = condenseLines(lines, avgSquare)
+	#get rid of unnessessary lines
+	avgW, avgH = avgWH(letterBoxes)
+	avgSquare = (avgW + avgH)/2
+	lines = condenseLines(lines, avgSquare)
 
-    print(letterBoxes[0])
-
-
-
-    #testing below vvvvv
-    print(lines)
-
-    for i in range(len(lines)):
-        X1, Y1, X2, Y2 = lines[i]
-        print(X1, Y1, X2, Y2)
-        WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
-
-    #draw detected lines in the image
-    #lineImage = lsd.drawSegments(WithChars, lines)  only if the lines aren't condensed
-
-    lengthBoxes = len(letterBoxes)
-    
-    #Show image
-    letterBoxes2, edgeList = mapEdges(letterBoxes, lines)
-    #print dummy carbons
-    for i in range(len(letterBoxes2)):
-        x, y, w, h, l = letterBoxes2[i]
-        cv2.rectangle(WithChars, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 255), 2)
-    cv2.imshow("LSD", WithChars)
-    #plt.show()
-    #testing above ^^^^^^^^^
+	print(letterBoxes[0])
 
 
-    return letterBoxes, lines
+
+	#testing below vvvvv
+	print(lines)
+
+	for i in range(len(lines)):
+		X1, Y1, X2, Y2 = lines[i]
+		print(X1, Y1, X2, Y2)
+		WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
+
+	#draw detected lines in the image
+	#lineImage = lsd.drawSegments(WithChars, lines)  only if the lines aren't condensed
+
+	lengthBoxes = len(letterBoxes)
+
+	#Show image
+	letterBoxes2, edgeList = mapEdges(letterBoxes, lines)
+	#print dummy carbons
+	for i in range(len(letterBoxes2)):
+		x, y, w, h, l = letterBoxes2[i]
+		cv2.rectangle(WithChars, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 255), 2)
+	cv2.imshow("LSD", WithChars)
+	#plt.show()
+	#testing above ^^^^^^^^^
+
+
+	return letterBoxes, lines
 
 #modify odds of certain characters
 def modifyPreds(pred):
@@ -506,8 +508,7 @@ def condenseLines(linesArg, avgSquare):
    
     return condensedLines
 
-letterBoxes, lines = recognizer()
-letterBoxes, edgeMap = mapEdges(letterBoxes, lines)
+
 
 '''
 for i in range(len(letterBoxes)):
