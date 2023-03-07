@@ -10,18 +10,22 @@ import Classes.constants as CONSTANT
 import pprint
 
 # import Image_Recognition.RecognizerDanny as RecognizerDanny
-import Image_Recognition.RecognizerKevin as RecognizerKevin
+import Image_Recognition.Recognizer as Recognizer
 
+from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
 
 def main():
 	pretty_print = pprint.PrettyPrinter()
 	# letterBoxes, lines = RecognizerDanny.recognize()
-	letterBoxes, lines = RecognizerKevin.recognize()
-	letterBoxes, edgeMap = RecognizerKevin.mapEdges(letterBoxes, lines)
-	print('\n\n')
-	print(letterBoxes)
-	print('\n\n')
-	print(edgeMap)
+	mapped_node_arr, mapped_edge_arr, edge_list = Recognizer.recognize()
+	print('\n\nmapped_node_arr in main')
+	for node in mapped_node_arr:
+		print(node)
+	print('\n\nmapped_edge_arr')
+	for edge in mapped_edge_arr:
+		print(edge)
+	print('\n\nedge_list 2D arr')
+	pretty_print.pprint(edge_list)
 	# pretty_print.pprint(letterBoxes)
 	# pretty_print.pprint(lines)
 
