@@ -9,12 +9,12 @@ import Classes.constants as CONSTANT
 
 import pprint
 
-import Image_Recognition.Recognizer as Recognizer
+import Image_Recognition.RecognizerDanny as RecognizerDanny
 
 
 def main():
 	pretty_print = pprint.PrettyPrinter()
-	letterBoxes, lines = Recognizer.recognize()
+	letterBoxes, lines = RecognizerDanny.recognize()
 
 	pretty_print.pprint(letterBoxes)
 	pretty_print.pprint(lines)
