@@ -97,15 +97,15 @@ def recognize():
 		chars.append((padded, (x, y, w, h)))
 
 	# plot isolated characters
-	n_cols = 10
-	n_rows = int(np.floor(len(chars)/ n_cols)+1)
-	fig = plt.figure(figsize=(1.5*n_cols,1.5*n_rows))
-	for i,char in enumerate(chars):
-		ax = plt.subplot(n_rows,n_cols,i+1)
-		# ax.imshow(char[0][:,:,0],cmap=cm.binary,aspect='auto')
-		plt.axis('off')
-	plt.tight_layout()
-	#plt.show()
+	# n_cols = 10
+	# n_rows = int(np.floor(len(chars)/ n_cols)+1)
+	# fig = plt.figure(figsize=(1.5*n_cols,1.5*n_rows))
+	# for i,char in enumerate(chars):
+	# 	ax = plt.subplot(n_rows,n_cols,i+1)
+	# 	# ax.imshow(char[0][:,:,0],cmap=cm.binary,aspect='auto')
+	# 	plt.axis('off')
+	# plt.tight_layout()
+	# #plt.show()
 
 	boxes = [b[1] for b in chars]
 	chars = np.array([c[0] for c in chars], dtype="float32")
@@ -166,11 +166,15 @@ def recognize():
 	#testing below vvvvv
 	# print(lines)
 
+
 	for i in range(len(lines)):
 		X1, Y1, X2, Y2 = lines[i]
 		# print(X1, Y1, X2, Y2)
 		WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
 
+	# plt.imshow(WithChars)
+	# plt.axis('on')
+	# plt.show()
 	#draw detected lines in the image
 	#lineImage = lsd.drawSegments(WithChars, lines)  only if the lines aren't condensed
 
@@ -178,6 +182,8 @@ def recognize():
 
 	#Show image
 	mapped_node_arr, mapped_edge_arr, edge_list = mapEdges(letterBoxes, lines)
+
+
 
 	return mapped_node_arr, mapped_edge_arr, edge_list
 
@@ -332,11 +338,17 @@ def avgLineLength(lines):
 
 #map each point of an edge to a letter box
 def mapEdges(letter_boxes, lines):
+	# Generate a default box size for implicit carbons (the carbons that are two lines meeting) and bond perimeters
+	if len(letter_boxes) > 0:
+		avgW, avgH = avgWH(letter_boxes)
+	else:
+		avgW, avgH = avgLineLength(lines)
+
 	# structures to organize line and node data
 	mapped_node_arr: list[mapped_node] = []
 	mapped_edge_arr: list[mapped_edge] = []
 	for line in lines:
-		mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3]))
+		mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
 
 	bound_expand = 2     # multiplier for width and height
 
@@ -349,11 +361,35 @@ def mapEdges(letter_boxes, lines):
 
 		mapped_node_arr.append(mapped_node(newBoundX, newBoundY, newBoundW, newBoundH, bound_letter)) 
 
-	# Generate an box size for implicit carbons (the carbons that are implicit)
-	if len(letter_boxes) > 0:
-		avgW, avgH = avgWH(letter_boxes)
-	else:
-		avgW, avgH = avgLineLength(lines)
+	# determine bond types
+	for line_one in mapped_edge_arr:
+		for line_two in mapped_edge_arr:
+			if line_one != line_two:
+				if line_one.contained_within_perimeter_endpoints(line_two.x1, line_two.y1) or line_one.contained_within_perimeter_endpoints(line_two.x2, line_two.y2):
+					line_one.related_edges.add(line_two)
+	
+	# remove edges that are unrelated (but in proximity) while maintaining edges that are part of the double/triple bond structure
+	for line in mapped_edge_arr:
+		line.minimize_bond_list_by_midpoint()
+		line.determine_type()
+	
+	# minimize double and triple bonds to a single line representation
+	new_edge_set = dict()
+	for line in mapped_edge_arr:
+		try:
+			new_edge_set[line]
+		except KeyError:
+			# DNE as key, check values
+			exists_as_value = False
+			for value in new_edge_set.values():
+				for item in value:
+					if item == line:
+						exists_as_value = True
+			if not exists_as_value:
+				new_edge_set[line] = line.related_edges
+
+	# replace with minimized edge list
+	mapped_edge_arr = new_edge_set.keys()
 
 	# Create implicit carbons
 	for line in mapped_edge_arr:
@@ -363,12 +399,12 @@ def mapEdges(letter_boxes, lines):
 		for node in mapped_node_arr:
 			if node.contained_in_boundaries(line.x1, line.y1):
 				notMatched1 = False
-			elif node.contained_in_boundaries(line.x2, line.y2):
+			if node.contained_in_boundaries(line.x2, line.y2):
 				notMatched2 = False
 
 		if notMatched1:
 			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'c'))
-		elif notMatched2:
+		if notMatched2:
 			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'c'))
 
 	# Initialize a 2d array full of 0's
@@ -398,7 +434,7 @@ def condenseLines(linesArg, avgSquare):
 		allLines.append(linesArg[i][0])
 
 	lines = []
-	#get rid of short lines, anything shorter than half the square width is gotten rid of
+	# get rid of short lines, anything shorter than half the square width is gotten rid of
 	for i in range(len(allLines)):
 		X1, Y1, X2, Y2 = allLines[i]
 		distance = math.sqrt((X1 - X2)**2 + (Y1 - Y2)**2)

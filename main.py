@@ -25,7 +25,16 @@ def main():
 	for edge in mapped_edge_arr:
 		print(edge)
 	print('\n\nedge_list 2D arr')
-	pretty_print.pprint(edge_list)
+	row_index = 0
+	col_index = 0
+	for row in edge_list:
+		for col in edge_list[row_index]:
+			print(edge_list[row_index][col_index], end=' ')
+			col_index += 1
+		row_index += 1
+		col_index = 0
+		print()
+	# pretty_print.pprint(edge_list)
 	# pretty_print.pprint(letterBoxes)
 	# pretty_print.pprint(lines)
 
