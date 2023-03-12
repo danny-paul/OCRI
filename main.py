@@ -18,6 +18,40 @@ def main():
 	pretty_print = pprint.PrettyPrinter()
 	# letterBoxes, lines = RecognizerDanny.recognize()
 	mapped_node_arr, mapped_edge_arr, edge_list = Recognizer.recognize()
+	bonds = []
+	atom_exists = dict() # tracks existing atoms to avoid duplicate creation
+
+	for edge in mapped_edge_arr:
+		atoms = []
+		print('edge:\n', str(edge), ' edge nodes:', str(edge.related_nodes), '\n')
+
+		for node in edge.related_nodes:
+			# prevent duplicate atom creation
+
+			try:
+				atoms.append(atom_exists[node])
+			except KeyError:
+				#DNE, allow creation and map addresses 
+				if node.type_is == 'N':
+					temp_atom = Atom("N", CONSTANT.NITROGEN_VAL_ELEC_COUNT, 0, CONSTANT.NITROGEN_FULL_ELEC_COUNT)
+				elif node.type_is == 'C' or node.type_is == 'c':
+					temp_atom = Atom("C", CONSTANT.CARBON_VAL_ELEC_COUNT, 0, CONSTANT.CARBON_FULL_ELEC_COUNT)
+				elif node.type_is == 'O':
+					temp_atom = Atom("O", CONSTANT.OXYGEN_VAL_ELEC_COUNT, 0, CONSTANT.OXYGEN_FULL_ELEC_COUNT)
+				elif node.type_is == 'H':
+					temp_atom = Atom("H", CONSTANT.HYDROGEN_VAL_ELEC_COUNT, 0, CONSTANT.HYDROGEN_FULL_ELEC_COUNT)
+
+				atom_exists[node] = temp_atom
+				atoms.append(temp_atom)
+
+		if edge.type_is == 'Single Bond':
+			bonds.append(SingleBond(atoms[0], atoms[1]))
+		elif edge.type_is == 'Double Bond':
+			bonds.append(DoubleBond(atoms[0], atoms[1]))
+		elif edge.type_is == 'Triple Bond':
+			bonds.append(TripleBond(atoms[0], atoms[1]))
+
+
 	print('\n\nmapped_node_arr in main')
 	for node in mapped_node_arr:
 		print(node)
@@ -34,11 +68,11 @@ def main():
 		row_index += 1
 		col_index = 0
 		print()
-	# pretty_print.pprint(edge_list)
-	# pretty_print.pprint(letterBoxes)
-	# pretty_print.pprint(lines)
 
 
+	print('\n\n')
+	recognized_graph = Graph(bonds)
+	print(recognized_graph)
 
 	# Valid Molecule stuff----------------------------------------------
 

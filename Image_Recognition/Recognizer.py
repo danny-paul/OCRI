@@ -21,9 +21,9 @@ from collections import defaultdict
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
 
 def recognize():
-	crop1 = 0
+	crop1 = 50
 	crop2 = 1000
-	crop3 = 0
+	crop3 = 50
 	crop4 = 3000
 
 	#loads the model with the keras load_model function
@@ -32,7 +32,7 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'PenTest2.png'
+	image_filename = 'PenTest3.png'
 	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
 	image = cv2.imread(image_path + image_filename)
 
@@ -350,7 +350,7 @@ def mapEdges(letter_boxes, lines):
 	for line in lines:
 		mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
 
-	bound_expand = 2     # multiplier for width and height
+	bound_expand = 2.3    # multiplier for width and height
 
 	# expand the bounds of the letterBoxes - BOTH
 	for bound_x, bound_y, bound_w, bound_h, bound_letter in letter_boxes:
@@ -416,13 +416,24 @@ def mapEdges(letter_boxes, lines):
 	for line in mapped_edge_arr:
 		for node in mapped_node_arr:
 			if node.contained_in_boundaries(line.x1, line.y1):
+				# update node list and bond list
+				line.related_nodes.add(node)
+				node.related_edges.add(line)
+
+				# 2d arr
 				edge_list[index_row][index_col] = node.type_is
 			elif node.contained_in_boundaries(line.x2, line.y2):
-				edge_list[index_row][index_col] = node.type_is
+				# update node list and bond list
+				line.related_nodes.add(node)
+				node.related_edges.add(line)
+
+				# 2d arr
+				edge_list[index_row][index_col] = node.type_is 
 			index_col += 1
 		index_row += 1
 		index_col = 0
 
+	
 	return mapped_node_arr, mapped_edge_arr, edge_list
 
 

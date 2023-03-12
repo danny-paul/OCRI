@@ -22,7 +22,7 @@ class mapped_node:
 		self.bottom_right_y = self.y + self.height
 
 		self.type_is = type_is
-		self.associated_edges = list[mapped_edge]
+		self.related_edges = set()
 	
 	def expand_boundaries_letterbox(self):
 		print()
@@ -43,7 +43,7 @@ class mapped_node:
 		
 
 class mapped_edge:
-	def __init__(self, x1: float, y1: float, x2: float, y2: float, perimeter_height: int, perimeter_width: int, type_is: str= 'unknown'):
+	def __init__(self, x1: float, y1: float, x2: float, y2: float, perimeter_width: int, perimeter_height: int, type_is: str= 'unknown'):
 		self.x1 = x1
 		self.y1 = y1
 		self.x2 = x2
@@ -78,6 +78,7 @@ class mapped_edge:
 		   }
 		# Contains edges that are related in double or triple bonding
 		self.related_edges = set()
+		self.related_nodes = set()
 
 	# Determines if passed cartesian point exist within the edge's start or end perimeter boxes
 	def contained_within_perimeter_endpoints(self, x: float, y: float):
@@ -99,8 +100,12 @@ class mapped_edge:
 	def contained_within_perimeter_midpoint(self, x: float, y: float):
 			matched: bool = False
 			
-			contained_within_x_perimeter_one: bool = x > self.perimeter_mid_point["top_left_x"] and x < self.perimeter_mid_point["top_right_x"]
-			contained_within_y_perimeter_one: bool = y > self.perimeter_mid_point['top_left_y'] and y < self.perimeter_mid_point['bottom_left_y']
+			contained_within_x_perimeter_one: bool = \
+				x > self.perimeter_mid_point["top_left_x"] and \
+				x < self.perimeter_mid_point["top_right_x"]
+			contained_within_y_perimeter_one: bool = \
+				y > self.perimeter_mid_point['top_left_y'] and \
+				y < self.perimeter_mid_point['bottom_left_y']
 	
 			if contained_within_x_perimeter_one and contained_within_y_perimeter_one:
 				matched = True
