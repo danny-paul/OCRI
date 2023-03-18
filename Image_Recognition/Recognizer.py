@@ -20,11 +20,15 @@ from collections import defaultdict
 
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
 
+#global for testing
+CBLB = []
+
+#Primary recognition function
 def recognize():
-	crop1 = 50
-	crop2 = 1000
-	crop3 = 50
-	crop4 = 3000
+	crop1 = 20
+	crop2 = 300
+	crop3 = 20
+	crop4 = 700
 
 	#loads the model with the keras load_model function
 	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
@@ -32,7 +36,7 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'PenTest2.png'
+	image_filename = 'PenTest.png'
 	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
 	image = cv2.imread(image_path + image_filename)
 
@@ -132,9 +136,9 @@ def recognize():
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
 		if (prob >= .7) and (w > 10) and (h > 10) and (h/w < 5) and (w/h < 5):
-			cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
+			#cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
-			cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+			#cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 			letterBoxes.append((x, y, w, h, label))
 
 	WithChars = cropped     #image with characters, used for printing
@@ -159,33 +163,32 @@ def recognize():
 	avgSquare = (avgW + avgH)/2
 	lines = condenseLines(lines, avgSquare)
 
-	# print(letterBoxes[0])
-
-
-
-	#testing below vvvvv
-	# print(lines)
-
-
+	''' Draw lines for testing
 	for i in range(len(lines)):
 		X1, Y1, X2, Y2 = lines[i]
 		# print(X1, Y1, X2, Y2)
 		WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
-
-	# plt.imshow(WithChars)
-	# plt.axis('on')
-	# plt.show()
-	#draw detected lines in the image
-	#lineImage = lsd.drawSegments(WithChars, lines)  only if the lines aren't condensed
-
-	lengthBoxes = len(letterBoxes)
+	'''
 
 	#Show image
 	mapped_node_arr, mapped_edge_arr, edge_list = mapEdges(letterBoxes, lines)
 
-
+	print(CBLB)
+	for i in range(len(CBLB)):
+		x, y, w, h, label_text = CBLB[i]
+		x = int(x)
+		y = int(y)
+		w = int(w)
+		h = int(h)
+		cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
+		cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+	plt.imshow(WithChars)
+	plt.axis('on')
+	plt.show()
 
 	return mapped_node_arr, mapped_edge_arr, edge_list
+
+												###### RECOGNITION FUNCTIONS ######
 
 #modify odds of certain characters
 def modifyPreds(pred):
@@ -305,6 +308,7 @@ def pureBlackWhite(picture):
 
 	return picture
 
+												###### UTILITY FUNCTIONS ######
 
 #get average width and height of each letter box (used for dummy crabons)
 def avgWH(letterBoxes):
@@ -333,8 +337,34 @@ def avgLineLength(lines):
 
 	totalDistance = totalDistance / len(lines)
 
-	return totalDistance        
+	return totalDistance   
 
+#Check if two rectangles intersect
+# From https://www.geeksforgeeks.org/find-two-rectangles-overlap/
+def intersects(TL1, BR1, TL2, BR2):
+	#T = top, L = left, B = bottom, R = right;  represents 2 rectangles
+
+	# define cooridinate indices
+	x = 0
+	y = 1
+
+	overlaps = True
+
+	# If either rectangle has 0 area, then no overlap
+	if TL1[x] == BR1[x] or TL1[y] == BR1[y] or TL2[x] == BR2[x] or TL2[y] == BR2[y]:
+		overlaps = False
+	
+	# If one rectangle is on the left side of another rectangle, then no overlap
+	if TL1[x] > BR2[x] or TL2[x] > BR1[x]:
+		overlaps = False
+
+	# If one rectangle is above another rectangle, then no overlap
+	if TL1[y] > BR2[y] or TL2[y] > BR1[y]:		#(0,0) is top left corner, not bottom right
+		overlaps = False
+	
+	return overlaps
+
+												###### MAPPING FUNCTIONS ######
 
 #map each point of an edge to a letter box
 def mapEdges(letter_boxes, lines):
@@ -342,7 +372,7 @@ def mapEdges(letter_boxes, lines):
 	if len(letter_boxes) > 0:
 		avgW, avgH = avgWH(letter_boxes)
 	else:
-		avgW, avgH = avgLineLength(lines)
+		avgW, avgH = avgLineLength(lines)/2
 
 	# structures to organize line and node data
 	mapped_node_arr: list[mapped_node] = []
@@ -350,16 +380,25 @@ def mapEdges(letter_boxes, lines):
 	for line in lines:
 		mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
 
-	bound_expand = 2.3    # multiplier for width and height
+	bound_expand = 3.0    # multiplier for width and height
 
-	# expand the bounds of the letterBoxes - BOTH
+	# expand the bounds of the letterBoxes, then combine them if they are touching
+	combinedLetterBoxes = []			#pass this to combineBoxes
 	for bound_x, bound_y, bound_w, bound_h, bound_letter in letter_boxes:
 		newBoundX = bound_x - 0.5 * (bound_expand - 1) * bound_w
 		newBoundY = bound_y - 0.5 * (bound_expand - 1) * bound_h
 		newBoundW = bound_w * bound_expand
 		newBoundH = bound_h * bound_expand
 
-		mapped_node_arr.append(mapped_node(newBoundX, newBoundY, newBoundW, newBoundH, bound_letter)) 
+		combinedLetterBoxes.append((newBoundX, newBoundY, newBoundW, newBoundH, bound_letter))
+
+	combinedLetterBoxes = combineBoxes(combinedLetterBoxes)
+	global CBLB
+	CBLB = combinedLetterBoxes		#pass to global for testing
+
+	#put the combinedLetterBoxes into the mapped_node_arr
+	for bound_x, bound_y, bound_w, bound_h, bound_letter in combinedLetterBoxes:
+		mapped_node_arr.append(mapped_node(bound_x, bound_y, bound_w, bound_h, bound_letter)) 
 
 	# determine bond types
 	for line_one in mapped_edge_arr:
@@ -415,7 +454,10 @@ def mapEdges(letter_boxes, lines):
 	index_col = 0
 	for line in mapped_edge_arr:
 		for node in mapped_node_arr:
-			if node.contained_in_boundaries(line.x1, line.y1):
+			if node.contained_in_boundaries(line.x1, line.y1) and node.contained_in_boundaries(line.x2, line.y2):
+				temporaryCodeDeleteLater = 1
+				#I want to delete the line here.
+			elif node.contained_in_boundaries(line.x1, line.y1):
 				# update node list and bond list
 				line.related_nodes.add(node)
 				node.related_edges.add(line)
@@ -432,11 +474,100 @@ def mapEdges(letter_boxes, lines):
 			index_col += 1
 		index_row += 1
 		index_col = 0
+	print('\n\nmapped_node_arr in main')
+	for node in mapped_node_arr:
+		print(node)
+	print('\n\nmapped_edge_arr')
+	for edge in mapped_edge_arr:
+		print(edge)
 
-	
 	return mapped_node_arr, mapped_edge_arr, edge_list
 
+# get combine touching letterboxes to form polyatomic and multicharacter elements
+def combineBoxes(letterBoxes):
 
+	letterGroups = []			#will store data for new letterBoxes
+	newLetterBoxes = []			#the new letter boxes, return value
+	grouped = set()
+
+	boundBoxExpand = 0.75		#we are shrinking the bounding boxes because they are too big for this part,
+									#but fine for lines
+
+	#create group for letterBox i
+	for i in range(len(letterBoxes)):
+		#only search rectantles that haven't been searched
+		if i not in grouped:
+			newGroup = []
+			X1, Y1, W1, H1, L1 = letterBoxes[i]
+
+			#make a group for rectangle i
+			newGroup.append(letterBoxes[i])
+			grouped.add(i)
+
+			#check if each letterBox intersects.
+			for j in range(i + 1, len(letterBoxes)):
+				X2, Y2, W2, H2, L2 = letterBoxes[j]
+
+				#shrink rectangle j's bounds
+				X2 = X2 - 0.5 * (boundBoxExpand - 1) * W2
+				Y2 = Y2 - 0.5 * (boundBoxExpand - 1) * H2
+				W2 = W2 * boundBoxExpand
+				H2 = H2 * boundBoxExpand
+
+				#check if each member of the current group intersects rectangle j
+				for k in range(len(newGroup)):
+					X1, Y1, W1, H1, L1 = newGroup[k]
+					#shrink rectangle i's bounds
+					X1 = X1 - 0.5 * (boundBoxExpand - 1) * W1
+					Y1 = Y1 - 0.5 * (boundBoxExpand - 1) * H1
+					W1 = W1 * boundBoxExpand
+					H1 = H1 * boundBoxExpand
+					
+					#if the character intersects and isn't i, add it to i's group
+					if j not in grouped and intersects((X1, Y1), (X1 + W1, Y1 + H1), (X2, Y2), (X2 + W2, Y2 + H2)):
+						newGroup.append(letterBoxes[j])
+						grouped.add(j)
+						j = i + 1			#restart loop
+
+			letterGroups.append(newGroup)
+
+	#now that the groups are formed, sort the characters in each group from left to right
+	#I'm not making some complicated sort to sort like 4 values, we're using bubble sort
+	#for each letter group
+	for i in range(len(letterGroups)):
+		#bubble sort
+		for j in range(len(letterGroups[i])):
+			for k in range(len(letterGroups[i])):
+				#compare x + y values
+				if letterGroups[i][j][0] + letterGroups[i][j][1]/10 < letterGroups[i][k][0] + letterGroups[i][k][1]/10:
+					temp = letterGroups[i][j]
+					letterGroups[i][j] = letterGroups[i][k]
+					letterGroups[i][k] = temp
+	
+	
+	#with the letter group items now sorted, we can condense them into a single item
+	for i in range(len(letterGroups)):
+		labelName = ""			#label name for the new letterBox item
+		TLXs = []				#rectangular bounds for the new letterBox item
+		TLYs = []
+		BRXs = []
+		BRYs = []
+		#collect letterBox info
+		for j in range(len(letterGroups[i])):
+			X, Y, W, H, L = letterGroups[i][j]
+			labelName += L
+			TLXs.append(X)
+			TLYs.append(Y)
+			BRXs.append(X + W)
+			BRYs.append(Y + H)	
+		#add the data to the newLetterBoxes
+		if len(letterBoxes) > 0:
+			newLetterBoxes.append((min(TLXs), min(TLYs), max(BRXs) - min(TLXs), max(BRYs) - min(TLYs), labelName))
+	
+
+	return newLetterBoxes
+
+# get rid of unnessessary lines
 def condenseLines(linesArg, avgSquare):
 
 	#convert lines argument into a better array
