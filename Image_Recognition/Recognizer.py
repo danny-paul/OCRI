@@ -539,7 +539,7 @@ def combineBoxes(letterBoxes):
 		for j in range(len(letterGroups[i])):
 			for k in range(len(letterGroups[i])):
 				#compare x + y values
-				if letterGroups[i][j][0] + letterGroups[i][j][1]/3 < letterGroups[i][k][0] + letterGroups[i][k][1]/3:
+				if letterGroups[i][j][0] + letterGroups[i][j][1]/10 < letterGroups[i][k][0] + letterGroups[i][k][1]/10:
 					temp = letterGroups[i][j]
 					letterGroups[i][j] = letterGroups[i][k]
 					letterGroups[i][k] = temp
