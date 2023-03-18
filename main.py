@@ -18,60 +18,26 @@ def main():
 	pretty_print = pprint.PrettyPrinter()
 	# letterBoxes, lines = RecognizerDanny.recognize()
 	mapped_node_arr, mapped_edge_arr, edge_list = Recognizer.recognize()
-	bonds = []
-	atom_exists = dict() # tracks existing atoms to avoid duplicate creation
 
-	for edge in mapped_edge_arr:
-		atoms = []
-		print('edge:\n', str(edge), ' edge nodes:', str(edge.related_nodes), '\n')
+	# print('\n\nmapped_node_arr in main')
+	# for node in mapped_node_arr:
+	# 	print(node)
+	# print('\n\nmapped_edge_arr')
+	# for edge in mapped_edge_arr:
+	# 	print(edge)
+	# print('\n\nedge_list 2D arr')
+	# row_index = 0
+	# col_index = 0
+	# for row in edge_list:
+	# 	for col in edge_list[row_index]:
+	# 		print(edge_list[row_index][col_index], end=' ')
+	# 		col_index += 1
+	# 	row_index += 1
+	# 	col_index = 0
+	# 	print()
 
-		for node in edge.related_nodes:
-			# prevent duplicate atom creation
-
-			try:
-				atoms.append(atom_exists[node])
-			except KeyError:
-				#DNE, allow creation and map addresses 
-				if node.type_is == 'N':
-					temp_atom = Atom("N", CONSTANT.NITROGEN_VAL_ELEC_COUNT, 0, CONSTANT.NITROGEN_FULL_ELEC_COUNT)
-				elif node.type_is == 'C' or node.type_is == 'c':
-					temp_atom = Atom("C", CONSTANT.CARBON_VAL_ELEC_COUNT, 0, CONSTANT.CARBON_FULL_ELEC_COUNT)
-				elif node.type_is == 'O':
-					temp_atom = Atom("O", CONSTANT.OXYGEN_VAL_ELEC_COUNT, 0, CONSTANT.OXYGEN_FULL_ELEC_COUNT)
-				elif node.type_is == 'H':
-					temp_atom = Atom("H", CONSTANT.HYDROGEN_VAL_ELEC_COUNT, 0, CONSTANT.HYDROGEN_FULL_ELEC_COUNT)
-
-				atom_exists[node] = temp_atom
-				atoms.append(temp_atom)
-
-		if edge.type_is == 'Single Bond':
-			bonds.append(SingleBond(atoms[0], atoms[1]))
-		elif edge.type_is == 'Double Bond':
-			bonds.append(DoubleBond(atoms[0], atoms[1]))
-		elif edge.type_is == 'Triple Bond':
-			bonds.append(TripleBond(atoms[0], atoms[1]))
-
-
-	print('\n\nmapped_node_arr in main')
-	for node in mapped_node_arr:
-		print(node)
-	print('\n\nmapped_edge_arr')
-	for edge in mapped_edge_arr:
-		print(edge)
-	print('\n\nedge_list 2D arr')
-	row_index = 0
-	col_index = 0
-	for row in edge_list:
-		for col in edge_list[row_index]:
-			print(edge_list[row_index][col_index], end=' ')
-			col_index += 1
-		row_index += 1
-		col_index = 0
-		print()
-
-
+	recognized_graph = translate_molecule(mapped_edge_arr)
 	print('\n\n')
-	recognized_graph = Graph(bonds)
 	print(recognized_graph)
 
 	# Valid Molecule stuff----------------------------------------------
@@ -151,6 +117,37 @@ def main():
 	# pretty_print.pprint(valid_graph.get_mapped_address_counts())
 	# print('-------------------------------------------------------------------\n')
 
+# need to add feature for unbound nodes
+def translate_molecule(mapped_edge_arr)->Graph:
+	bonds = []
+	atom_exists = dict() # tracks existing atoms to avoid duplicate creation
+
+	for edge in mapped_edge_arr:
+		atoms = []
+
+		for node in edge.related_nodes:
+			# prevent duplicate atom creation
+			try:
+				atoms.append(atom_exists[node])
+			except KeyError:
+				#DNE, allow creation and map addresses 
+				temp_atom = Atom(node.type_is)
+
+				atom_exists[node] = temp_atom
+				atoms.append(temp_atom)
+
+		try:
+			if edge.type_is == 'Single Bond':
+				bonds.append(SingleBond(atoms[0], atoms[1]))
+			elif edge.type_is == 'Double Bond':
+				bonds.append(DoubleBond(atoms[0], atoms[1]))
+			elif edge.type_is == 'Triple Bond':
+				bonds.append(TripleBond(atoms[0], atoms[1]))
+		except NameError:
+			print('error creating bond.\natom[0]:', str(atoms[0]), '\natom[1]: ', str(atoms[1]), '\n\n')
+
+
+	return Graph(bonds)
 
 # returns graph of a valid molecule ("see presentation 3 for the example molecule")
 def produce_valid_molecule():

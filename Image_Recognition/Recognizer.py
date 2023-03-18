@@ -32,7 +32,7 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'PenTest3.png'
+	image_filename = 'PenTest2.png'
 	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
 	image = cv2.imread(image_path + image_filename)
 
@@ -403,9 +403,9 @@ def mapEdges(letter_boxes, lines):
 				notMatched2 = False
 
 		if notMatched1:
-			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'c'))
+			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'C'))
 		if notMatched2:
-			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'c'))
+			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'C'))
 
 	# Initialize a 2d array full of 0's
 	edge_list = [['+']*len(mapped_node_arr) for i in range(len(lines))]

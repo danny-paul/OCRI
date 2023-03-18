@@ -1,13 +1,25 @@
 import Classes.constants as CONSTANT
 
 class Atom:
-	def __init__(self, atom_type: str, base_val_electrons: int, shared_val_electrons: int, full_electron_config: int):
+	def __init__(self, atom_type: str, base_val_electrons: int = -1, shared_val_electrons: int = -1, full_electron_config: int = -1):
 		# will need to restrict type to a list of predefined values else raise error
 		self.atom_type = atom_type
-		self.atom_type_full = CONSTANT.ATOM_SYMBOL_TO_NAME_DICT[self.atom_type]
-		self.full_electron_config = full_electron_config # number of electrons req'd to have outer shell stable
-		self.base_val_electrons = base_val_electrons # valence electrons available when no bonding present
-		self.shared_val_electrons = shared_val_electrons # electrons shared (base - shared >= 0)
+		try:
+			self.atom_type_full = CONSTANT.ATOM_SYMBOL_TO_NAME_DICT[self.atom_type]		
+		except KeyError:
+			raise NameError('Atom type DNE in the ATOM_SYMBOL_TO_NAME_DICT. Atom_type: ', str(atom_type))
+		
+		if base_val_electrons == -1 or shared_val_electrons == -1 or full_electron_config == -1:
+			try:
+				self.full_electron_config = CONSTANT.ATOM_FULL_ELEC_COUNT[atom_type] # number of electrons req'd to have outer shell stable
+				self.base_val_electrons = CONSTANT.ATOM_UNBONDED_VAL_ELEC_COUNT[atom_type] # valence electrons available when no bonding present
+				self.shared_val_electrons = 0 # electrons shared (base - shared >= 0)
+			except KeyError:
+				raise NameError('Atom type DNE in the dictionary, could not create atom. Atom type: ', str(atom_type))
+		else:	
+			self.full_electron_config = full_electron_config # number of electrons req'd to have outer shell stable
+			self.base_val_electrons = base_val_electrons # valence electrons available when no bonding present
+			self.shared_val_electrons = shared_val_electrons # electrons shared (base - shared >= 0)
 
 	def get_type(self):
 		return self.atom_type
