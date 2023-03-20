@@ -1,5 +1,9 @@
 
 from collections import defaultdict
+from Classes.graph import Graph
+from Classes.bonds import Bond, SingleBond, DoubleBond, TripleBond
+from Classes.atom import Atom
+import Classes.constants as CONSTANT
 
 class mapped_node:
 	def __init__(self, x: int, y: int, width: int, height: int, type_is: str = 'unknown'):
@@ -155,3 +159,153 @@ class edge_map:
 	def __str__(self):
 		return ''
 			
+
+def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list[mapped_node])->Graph:
+	bonds = []
+	partial_bonded_structures = []
+	unbound_atoms = []
+	node_atom_dict = dict()
+
+	for node in mapped_node_arr:
+		if (Atom.is_atom(node.type_is) or Atom.is_polyatomic(node.type_is)):
+			# Node is single atom or polyatomic (treated as one atom)
+
+			atom_to_map = Atom(node.type_is)
+			unbound_atoms.append(atom_to_map)
+			node_atom_dict[node] = atom_to_map # map node-->atom for bonding later
+		else:
+			# multiple atoms but not polyatomic, breakup into individual atoms and connect those atoms via bonding
+
+			type_list = breakup_multi_atom_node(node)
+			main_atom_type = probable_main_atom(type_list)
+			atoms_in_node: list[Atom] = []
+
+			# create main atom, remove from list, and connect to node
+			main_atom = Atom(main_atom_type)
+			type_list.remove(main_atom_type)
+			node_atom_dict[node] = main_atom # will be the connecting atom of the partial structure to the overall molecule
+
+			# create atom list for function, connect_atoms_to_main
+			for letter in type_list:
+				try:
+					atoms_in_node.append(Atom(letter))
+				except NameError:
+					print('Could not produce Atom class in adapter_classes.py. Issue letter: ', str(letter))
+
+			# store partial structures to be combined later
+			partial_bonded_structures.append(connect_atoms_to_main(atoms_in_node, main_atom))
+
+			# main atom needs to connect to overall structuer
+			unbound_atoms.append(main_atom)
+	
+	# connect edges to nodes (now represented as atoms)
+	for edge in mapped_edge_arr:
+		if len(edge.related_nodes) == 2:
+			try:
+				# set used, unordered, therfore enumerate
+				for index, node in enumerate(edge.related_nodes):
+					if index == 0:
+						node_one = node
+					if index == 1:
+						node_two = node
+
+				# get atom from node, create bond
+				if edge.type_is == 'Single Bond':
+					bonds.append(SingleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
+				elif edge.type_is == 'Double Bond':
+					bonds.append(DoubleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
+				elif edge.type_is == 'Triple Bond':
+					bonds.append(TripleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
+			except KeyError:
+				print('Ooops something went wrong, node was not present in the node_atom_dict. Bond not created. Edge: ', str(edge))
+		else:
+			print('Err: edge should have two related nodes. Edge: ', str(edge))
+
+
+	# combine into one bond list
+	for bond_list in partial_bonded_structures:
+		for bond in bond_list:
+			bonds.append(bond)
+	
+	# produce graph
+	recognized_graph = Graph(bonds)
+	recognized_graph.add_nodes_via_atom_list(unbound_atoms)
+
+	return Graph(bonds)
+
+	
+def breakup_multi_atom_node(node: mapped_node)-> list[Atom]:
+	explicit_node_type: list[str] = []
+	n_digits = 1
+	index = len(node.type_is) - 1
+
+	# create explicit representation of the atoms in the string. Eg: instead of H2Cl2-->[H, H, Cl, Cl]
+	while (index >= 0):
+		if (node.type_is[index].isdigit()):
+			n_digits = int(node.type_is[index])
+			index -= 1
+		else:
+			try:
+				# 1-char atom symbol
+				CONSTANT.ATOM_SYMBOL_TO_NAME_DICT[node.type_is[index]]
+				for value in range(0, n_digits, 1):
+					explicit_node_type.append(node.type_is[index])
+				index -= 1
+			except KeyError:
+				# 2-char atom symbol
+				if index >= 1:
+					CONSTANT.ATOM_SYMBOL_TO_NAME_DICT[str(node.type_is[index-1]) + str(node.type_is[index])]
+					for value in range(0, n_digits, 1):
+						explicit_node_type.append(str(node.type_is[index-1]) + str(node.type_is[index]))
+					index = index - 2
+			finally:
+				n_digits = 1
+
+	return explicit_node_type
+
+def probable_main_atom(atom_list: list[str]) -> str:
+	bonding_atom = ''
+
+	probable_bonding_count = {
+		'C':0,
+		'N':0,
+		'O':0,
+		'S': 0,
+		'B': 0,
+		'P': 0
+	}
+
+	for letter in atom_list:
+		try:
+			atom_count = probable_bonding_count[letter]
+			atom_count += 1
+			probable_bonding_count[letter] = atom_count
+		except KeyError:
+			# not bonding atom, do nothing
+			pass
+			
+
+	# Anticipated bonding precedence
+	if probable_bonding_count['C'] > 0:
+		bonding_atom = 'C'
+	elif probable_bonding_count['N'] > 0:
+		bonding_atom = 'N'
+	elif probable_bonding_count['O'] > 0:
+		bonding_atom = 'O'
+	elif probable_bonding_count['P'] > 0:
+		bonding_atom = 'P'
+	elif probable_bonding_count['S'] > 0:
+		bonding_atom = 'S'
+	elif probable_bonding_count['B'] > 0:
+		bonding_atom = 'B'
+
+	return bonding_atom
+
+def connect_atoms_to_main(atoms_to_connect:list[Atom], main_atom: Atom)->list[Bond]:
+	bond_list = []
+
+	# for now, bond everything to main. Should cover the majority of cases.
+	for atom in atoms_to_connect:
+		bond_list.append(SingleBond(main_atom, atom))
+
+	return bond_list

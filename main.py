@@ -6,13 +6,14 @@ from Classes.bonds import DoubleBond
 from Classes.bonds import TripleBond
 from Classes.atom import Atom
 import Classes.constants as CONSTANT
+from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 
 import pprint
 
 # import Image_Recognition.RecognizerDanny as RecognizerDanny
 import Image_Recognition.Recognizer as Recognizer
 
-from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
+
 
 def main():
 	pretty_print = pprint.PrettyPrinter()
@@ -35,10 +36,12 @@ def main():
 	# 	row_index += 1
 	# 	col_index = 0
 	# 	print()
-
-	recognized_graph = translate_molecule(mapped_edge_arr)
-	print('\n\n')
-	print(recognized_graph)
+	
+	recognized_structure = translate_molecule(mapped_edge_arr, mapped_node_arr)
+	print(recognized_structure)
+	# recognized_graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
+	# print('\n\n')
+	# print(recognized_graph)
 
 	# Valid Molecule stuff----------------------------------------------
 
@@ -116,38 +119,6 @@ def main():
 	# print()
 	# pretty_print.pprint(valid_graph.get_mapped_address_counts())
 	# print('-------------------------------------------------------------------\n')
-
-# need to add feature for unbound nodes
-def translate_molecule(mapped_edge_arr)->Graph:
-	bonds = []
-	atom_exists = dict() # tracks existing atoms to avoid duplicate creation
-
-	for edge in mapped_edge_arr:
-		atoms = []
-
-		for node in edge.related_nodes:
-			# prevent duplicate atom creation
-			try:
-				atoms.append(atom_exists[node])
-			except KeyError:
-				#DNE, allow creation and map addresses 
-				temp_atom = Atom(node.type_is)
-
-				atom_exists[node] = temp_atom
-				atoms.append(temp_atom)
-
-		try:
-			if edge.type_is == 'Single Bond':
-				bonds.append(SingleBond(atoms[0], atoms[1]))
-			elif edge.type_is == 'Double Bond':
-				bonds.append(DoubleBond(atoms[0], atoms[1]))
-			elif edge.type_is == 'Triple Bond':
-				bonds.append(TripleBond(atoms[0], atoms[1]))
-		except NameError:
-			print('error creating bond.\natom[0]:', str(atoms[0]), '\natom[1]: ', str(atoms[1]), '\n\n')
-
-
-	return Graph(bonds)
 
 # returns graph of a valid molecule ("see presentation 3 for the example molecule")
 def produce_valid_molecule():

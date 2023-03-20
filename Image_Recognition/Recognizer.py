@@ -25,10 +25,10 @@ CBLB = []
 
 #Primary recognition function
 def recognize():
-	crop1 = 20
-	crop2 = 300
-	crop3 = 20
-	crop4 = 700
+	crop1 = 0
+	crop2 = 1000
+	crop3 = 0
+	crop4 = 1000
 
 	#loads the model with the keras load_model function
 	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
@@ -36,7 +36,7 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'PenTest.png'
+	image_filename = 'PolyAtomicTest.png'
 	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
 	image = cv2.imread(image_path + image_filename)
 
@@ -173,18 +173,18 @@ def recognize():
 	#Show image
 	mapped_node_arr, mapped_edge_arr, edge_list = mapEdges(letterBoxes, lines)
 
-	print(CBLB)
-	for i in range(len(CBLB)):
-		x, y, w, h, label_text = CBLB[i]
-		x = int(x)
-		y = int(y)
-		w = int(w)
-		h = int(h)
-		cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
-		cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-	plt.imshow(WithChars)
-	plt.axis('on')
-	plt.show()
+	# print(CBLB)
+	# for i in range(len(CBLB)):
+	# 	x, y, w, h, label_text = CBLB[i]
+	# 	x = int(x)
+	# 	y = int(y)
+	# 	w = int(w)
+	# 	h = int(h)
+	# 	cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
+	# 	cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+	# plt.imshow(WithChars)
+	# plt.axis('on')
+	# plt.show()
 
 	return mapped_node_arr, mapped_edge_arr, edge_list
 
