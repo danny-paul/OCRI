@@ -8,11 +8,12 @@ import Classes.constants as CONSTANT
 import pprint # used in debugging sections
 
 class Graph:
-	def __init__(self, bonds: list[Bond]):
+	def __init__(self, bonds: list[Bond] = []):
 		self.graph = defaultdict(set)
 		self.mapped_address = dict()
 		self.mapped_address_counts = dict()
-		self.add_bonds_via_bond_list(bonds)
+		if (len(bonds) > 0):
+			self.add_bonds_via_bond_list(bonds)
 
 	# add bonds and their associated atoms to the graph
 	def add_bonds_via_bond_list(self, bonds: list[Bond]):

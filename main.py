@@ -6,85 +6,20 @@ from Classes.bonds import DoubleBond
 from Classes.bonds import TripleBond
 from Classes.atom import Atom
 import Classes.constants as CONSTANT
+from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 
 import pprint
 
+# import Image_Recognition.RecognizerDanny as RecognizerDanny
+import Image_Recognition.Recognizer as Recognizer
+
 def main():
 	pretty_print = pprint.PrettyPrinter()
+	# letterBoxes, lines = RecognizerDanny.recognize()
+	mapped_node_arr, mapped_edge_arr, edge_list = Recognizer.recognize()
+	recognized_structure: Graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
 
-	# print original molecule (no removals)
-	print("\n\n")
-	print('-------------------------------------------------------------------\n')
-	print('original')
-	valid_graph, bond_one, oxygenOne, hydrogenSix, carbonTwo = produce_valid_molecule()
-	print(valid_graph)
-	pretty_print.pprint(valid_graph.get_mapped_address())
-	print()
-	pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	print('-------------------------------------------------------------------\n')
-	print("\n\n")
-
-	# # remove bonds to oxygenOne and print molecule again
-	# print('-------------------------------------------------------------------\n')
-	# valid_graph.remove_bonds_to_atom(oxygenOne)
-	# print('removed BONDS TO oxygenOne')
-	# print(valid_graph)
-	# pretty_print.pprint(valid_graph.get_mapped_address())
-	# print()
-	# pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	# print('-------------------------------------------------------------------\n')
-	# print("\n\n")
-
-	# remove oxygenOne and hydrogen six and print molecule again
-	print('-------------------------------------------------------------------\n')
-	valid_graph.delete_atoms_via_atom_list([oxygenOne, hydrogenSix])
-	print('deleted OxygenOne and HydrogenSix')
-	print(valid_graph)
-	pretty_print.pprint(valid_graph.get_mapped_address())
-	print()
-	pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	print('-------------------------------------------------------------------\n')
-	print("\n\n")
-
-	print('-------------------------------------------------------------------\n')
-	print('Adding node atom, Atom Oxygen')
-	newOxygen = Atom("O", 6, 0, 8)
-	valid_graph.add_node_via_atom_obj(newOxygen)
-	print(valid_graph)
-	pretty_print.pprint(valid_graph.get_mapped_address())
-	print()
-	pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	print('-------------------------------------------------------------------\n')
-
-	print('-------------------------------------------------------------------\n')
-	print('Adding node atom, Atom Hydrogen')
-	newHydrogen = Atom("H", 1, 0, 2)
-	valid_graph.add_node_via_atom_obj(newHydrogen)
-	print(valid_graph)
-	pretty_print.pprint(valid_graph.get_mapped_address())
-	print()
-	pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	print('-------------------------------------------------------------------\n')
-
-	print('-------------------------------------------------------------------\n')
-	print('Adding bond between non connected node atoms, oxygen1 and hydrogen 6')
-	valid_graph.add_bond_via_bond_obj(SingleBond(newOxygen, newHydrogen))
-	print(valid_graph)
-	pretty_print.pprint(valid_graph.get_mapped_address())
-	print()
-	pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	print('-------------------------------------------------------------------\n')
-
-
-	print('-------------------------------------------------------------------\n')
-	print('Adding bond between non connected nodes, oxygen1 and ')
-	valid_graph.add_bond_via_bond_obj(SingleBond(newOxygen, carbonTwo))
-	print(valid_graph)
-	pretty_print.pprint(valid_graph.get_mapped_address())
-	print()
-	pretty_print.pprint(valid_graph.get_mapped_address_counts())
-	print('-------------------------------------------------------------------\n')
-
+	print(recognized_structure)
 
 # returns graph of a valid molecule ("see presentation 3 for the example molecule")
 def produce_valid_molecule():
