@@ -13,13 +13,27 @@ import pprint
 # import Image_Recognition.RecognizerDanny as RecognizerDanny
 import Image_Recognition.Recognizer as Recognizer
 
-def main():
-	pretty_print = pprint.PrettyPrinter()
-	# letterBoxes, lines = RecognizerDanny.recognize()
-	mapped_node_arr, mapped_edge_arr, edge_list = Recognizer.recognize()
-	recognized_structure: Graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
+import Classes.gui as GUI
+import tkinter as tk
 
-	print(recognized_structure)
+# def main():
+# 	pretty_print = pprint.PrettyPrinter()
+# 	# letterBoxes, lines = RecognizerDanny.recognize()
+# 	mapped_node_arr, mapped_edge_arr, edge_list = Recognizer.recognize()
+# 	recognized_structure: Graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
+
+# 	print(recognized_structure)
+
+
+# Creates a Tk object, assigns it to the root variable, sets the title of the window, creates
+# a Main object with root as the window parameter, and starts the main loop of the application.
+def main():
+	root = tk.Tk()
+	root.title("OCRI Interface")
+	app = GUI.Gui_Edit_Molecule(root)
+	#root.attributes('-fullscreen',True) # Makes the root frame start in fullscreen
+	root.resizable(False, False)         # Does not allow user to resize the frame
+	root.mainloop()
 
 # returns graph of a valid molecule ("see presentation 3 for the example molecule")
 def produce_valid_molecule():
@@ -70,63 +84,6 @@ def produce_valid_molecule():
 
 
 	return valid_molecule_graph, bond_nine, oxygenOne, hydrogenSix, carbonThree
-
-
-	# can form bonding
-	# can_form_bond =\
-	# 				CovalentBond.can_atoms_form_bond(carbonOne, hydrogenOne, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonOne, hydrogenTwo, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonOne, hydrogenTwo, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonOne, hydrogenThree, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonOne, carbonThree, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonTwo, hydrogenFour, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonTwo, hydrogenFive, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonTwo, carbonThree, CONSTANT.DOUBLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(carbonThree, oxygenOne, CONSTANT.SINGLE_BOND_COST) \
-	# 				and \
-	# 				CovalentBond.can_atoms_form_bond(oxygenOne, hydrogenSix, CONSTANT.SINGLE_BOND_COST)
-
-	# # if all bonds can form, create Bond objects
-	# if can_form_bond:
-	# 	bond_one = SingleBond(carbonOne, hydrogenOne)
-	# 	bond_two = SingleBond(carbonOne, hydrogenTwo)
-	# 	bond_three = SingleBond(carbonOne, hydrogenThree)
-	# 	bond_four = SingleBond(carbonOne, carbonThree)
-
-	# 	bond_five = SingleBond(carbonTwo, hydrogenFour)
-	# 	bond_six = SingleBond(carbonTwo, hydrogenFive)
-	# 	bond_seven = DoubleBond(carbonTwo, carbonThree)
-
-	# 	bond_eight = SingleBond(carbonThree, oxygenOne)
-
-	# 	bond_nine = SingleBond(oxygenOne, hydrogenSix)
-	# 	bond_list: list[Bond] = \
-	# 		[bond_one, \
-	# 			bond_two, \
-	# 				bond_three, \
-	# 					bond_four, \
-	# 						bond_five, \
-	# 							bond_six, \
-	# 								bond_seven, \
-	# 									bond_eight, \
-	# 										bond_nine ]
-
-	# 	# generate molecule by passing bond_list
-	# 	valid_molecule_graph = Graph(bond_list)
-
-	# print('is this a valid structure? ' + str(can_form_bond))
-
-	# return valid_molecule_graph, bond_nine, oxygenOne, hydrogenSix
-
-
 
 
 
