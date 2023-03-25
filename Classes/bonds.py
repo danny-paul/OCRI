@@ -51,10 +51,10 @@ class IonicBond(Bond):
 class CovalentBond(Bond):
 	def __init__(self, atom_one: Atom, atom_two: Atom, electron_cost: int):
 		if not CovalentBond.can_atoms_form_bond(atom_one, atom_two, electron_cost):
-			atom_error_one = "Atom One:\n\t" + str(atom_one) + "\n"
-			atom_error_two = "Atom Two:\n\t" + str(atom_two) + "\n"
-			bond_error = "Desired Bond:\n\t" + str(self.__class__.__name__) + " with cost: " + str(electron_cost)
-			raise NameError("Bonding Invalid, please check for valid bond before bond instantiation via \"CovelentBond.can_atoms_form_bond(atom_one, atom_two, CONSTANT.'BondType') function\". Error Details:\n" + atom_error_one + atom_error_two + bond_error)
+			atom_error_one = "\tAtom One:\t" + str(atom_one) + "\n"
+			atom_error_two = "\tAtom Two:\t" + str(atom_two) + "\n"
+			bond_error = "\tDesired Bond:\t" + str(self.__class__.__name__)
+			raise NameError("Error: Atoms unable to bond\nDetails:\n" + atom_error_one + atom_error_two + bond_error)
 
 		super().__init__(atom_one, atom_two, electron_cost)
 		self.share_electrons()

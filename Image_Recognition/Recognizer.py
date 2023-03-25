@@ -25,10 +25,10 @@ CBLB = []
 
 #Primary recognition function
 def recognize():
-	crop1 = 0
-	crop2 = 1000
-	crop3 = 0
-	crop4 = 1000
+	crop1 = 0 #y1
+	crop2 = 1000 # y2
+	crop3 = 0 #x1
+	crop4 = 2000 #x2
 
 	#loads the model with the keras load_model function
 	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
@@ -36,7 +36,7 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'PolyAtomicTest.png'
+	image_filename = 'PenTest2.png'
 	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
 	image = cv2.imread(image_path + image_filename)
 
@@ -169,8 +169,15 @@ def recognize():
 		# print(X1, Y1, X2, Y2)
 		WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
 	'''
+	# for i in range(len(lines)):
+	# 	X1, Y1, X2, Y2 = lines[i]
+	# 	# print(X1, Y1, X2, Y2)
+	# 	WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
+	# plt.imshow(WithChars)
+	# plt.axis('on')
+	# plt.show()
 
-	#Show image
+	lines = minimize_extreme_edges_by_crop(crop3, crop1, crop4, crop2, lines) # x1, y1, x2, y2
 	mapped_node_arr, mapped_edge_arr, edge_list = mapEdges(letterBoxes, lines)
 
 	# print(CBLB)
@@ -189,6 +196,23 @@ def recognize():
 	return mapped_node_arr, mapped_edge_arr, edge_list
 
 												###### RECOGNITION FUNCTIONS ######
+
+def minimize_extreme_edges_by_crop(crop_x1, crop_y1, crop_x2, crop_y2, lines):
+	minmized_line_list = []
+
+	# for line position, ensure far enough away from boundary (removes some artifacts)
+	for line in lines:
+		line_x1, line_y1, line_x2, line_y2 = line
+		offset_from_crop = 5
+		x1_within_boundary: bool = line_x1 > crop_x1 + offset_from_crop and line_x1 < crop_x2 - offset_from_crop
+		y1_within_boundary: bool = line_y1 > crop_y1 + offset_from_crop and line_y1 < crop_y2 - offset_from_crop
+		x2_within_boundary: bool = line_x2 > crop_x1 + offset_from_crop and line_x2 < crop_x2 - offset_from_crop
+		y2_within_boundary: bool = line_y2 > crop_y1 + offset_from_crop and line_y2 < crop_y2 - offset_from_crop
+
+		if x1_within_boundary and y1_within_boundary and x2_within_boundary and y2_within_boundary:
+			minmized_line_list.append(line)
+
+	return minmized_line_list
 
 #modify odds of certain characters
 def modifyPreds(pred):
@@ -378,7 +402,9 @@ def mapEdges(letter_boxes, lines):
 	mapped_node_arr: list[mapped_node] = []
 	mapped_edge_arr: list[mapped_edge] = []
 	for line in lines:
-		mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
+		# exclude lines that are in negative x/y positions
+		if line[0] > 0 and line[1] > 0 and line[2] > 0 and line[3] > 0:
+			mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
 
 	bound_expand = 3.0    # multiplier for width and height
 
@@ -404,7 +430,7 @@ def mapEdges(letter_boxes, lines):
 	for line_one in mapped_edge_arr:
 		for line_two in mapped_edge_arr:
 			if line_one != line_two:
-				if line_one.contained_within_perimeter_endpoints(line_two.x1, line_two.y1) or line_one.contained_within_perimeter_endpoints(line_two.x2, line_two.y2):
+				if line_one.contained_within_perimeter_midpoint(line_two.x_mid, line_two.y_mid):
 					line_one.related_edges.add(line_two)
 	
 	# remove edges that are unrelated (but in proximity) while maintaining edges that are part of the double/triple bond structure
@@ -442,9 +468,9 @@ def mapEdges(letter_boxes, lines):
 				notMatched2 = False
 
 		if notMatched1:
-			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'C'))
+			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'c'))
 		if notMatched2:
-			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'C'))
+			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'c'))
 
 	# Initialize a 2d array full of 0's
 	edge_list = [['+']*len(mapped_node_arr) for i in range(len(lines))]
@@ -474,12 +500,6 @@ def mapEdges(letter_boxes, lines):
 			index_col += 1
 		index_row += 1
 		index_col = 0
-	print('\n\nmapped_node_arr in main')
-	for node in mapped_node_arr:
-		print(node)
-	print('\n\nmapped_edge_arr')
-	for edge in mapped_edge_arr:
-		print(edge)
 
 	return mapped_node_arr, mapped_edge_arr, edge_list
 

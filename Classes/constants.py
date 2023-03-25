@@ -39,13 +39,13 @@ CANNOT_BOND_TO_SAME_TYPE = {
 }
 
 ATOM_FULL_ELEC_COUNT = {
-    'B':8, 'C':8, 'N': 8, 'O':8, 'F':8,
+    'B':8, 'C':8, 'c':8, 'N': 8, 'O':8, 'F':8,
     'Si':8, 'P':8, 'S':8, 'Cl':8,
     'Br':8, 'I':8, 'H':2
 }
 
 ATOM_UNBONDED_VAL_ELEC_COUNT = {
-    'B':3, 'C':4, 'N': 5, 'O':6, 'F':7,
+    'B':3, 'C':4, 'c':4, 'N': 5, 'O':6, 'F':7,
     'Si':4, 'P':5, 'S':6, 'Cl':7,
     'Br':7, 'I':7, 'H':1
 }
@@ -79,7 +79,7 @@ ATOM_NAME_TO_SYMBOL_DICT = {
 
 ATOM_SYMBOL_TO_NAME_DICT = {
 	"H":"Hydrogen", "Li":"Lithium", "Be":"Beryllium", "B":"Boron",
-	"C":"Carbon", "N":"Nitrogen", "O":"Oxygen", "F":"Fluorine",
+	"C":"Carbon", "c" :"Carbon", "N":"Nitrogen", "O":"Oxygen", "F":"Fluorine",
 	"Na":"Sodium", "Mg":"Magnesium", "Al":"Aluminum", "Si":"Silicon", 
     "P":"Phosphorus", "S":"Sulfur", "Cl":"Chlorine", "K":"Potassium", 
     "Ca":"Calcium", "As":"Arsenic", "Se":"Selenium", "Br":"Bromine",

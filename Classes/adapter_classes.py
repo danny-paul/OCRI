@@ -141,6 +141,9 @@ class mapped_edge:
 
 	def __str__(self):
 		temp_str = '(' + str(self.x1) + ', ' + str(self.y1) + '), ' + '(' + str(self.x2) + ', ' + str(self.y2) + ') m=' + str(self.slope) + ' type:' + self.type_is
+		for index, node in enumerate(self.related_nodes):
+			temp_str += '\n\tNode ' + str(index) + ': ' + str(node)
+		
 		return temp_str
 			
 
@@ -217,9 +220,11 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 				elif edge.type_is == 'Triple Bond':
 					bonds.append(TripleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
 			except KeyError:
-				print('Ooops something went wrong, node was not present in the node_atom_dict. Bond not created. Edge: ', str(edge))
+				print('Error: node was not present in the node_atom_dict. Bond not created. Edge: ', str(edge))
+			except NameError as err: 
+				print(err)
 		else:
-			print('Err: edge should have two related nodes. Edge: ', str(edge))
+			print('Warning: Edge should have two related nodes. No bond formed. Edge: ', str(edge))
 
 
 	# combine into one bond list
