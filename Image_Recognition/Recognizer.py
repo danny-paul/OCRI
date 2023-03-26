@@ -1,7 +1,7 @@
 #from https://deepnote.com/@davidespalla/Recognizing-handwriting-with-Tensorflow-and-OpenCV-cfc4acf5-188e-4d3b-bdb5-a13aa463d2b0
 
 from keras.models import load_model
-from PIL import Image
+from PIL import Image, ImageEnhance
 import tensorflow as tf
 import cv2
 import matplotlib.pyplot as plt
@@ -25,10 +25,10 @@ CBLB = []
 
 #Primary recognition function
 def recognize():
-	crop1 = 0 #y1
-	crop2 = 1000 # y2
-	crop3 = 0 #x1
-	crop4 = 2000 #x2
+	crop1 = 150 #y1
+	crop2 = 500 # y2
+	crop3 = 100 #x1
+	crop4 = 310 #x2
 
 	#loads the model with the keras load_model function
 	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
@@ -36,10 +36,21 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'PenTest2.png'
+	image_filename = 'DanTest.jpg'
 	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
-	image = cv2.imread(image_path + image_filename)
 
+	#open image
+	image = Image.open(image_path + image_filename)
+
+	#reduce contrast
+	enhancer = ImageEnhance.Contrast(image)
+	lessContrast = enhancer.enhance(0.5)
+
+	#convert to cv2
+	image = np.array(lessContrast)
+	image = image[:, :, ::-1].copy()
+
+	#apply some filters and crop image
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	cropped = gray[crop1:crop2, crop3:crop4]
 	blurred = cv2.GaussianBlur(cropped, (5, 5), 0)
@@ -50,8 +61,8 @@ def recognize():
 	#convert to pure black and white
 	blurred = pureBlackWhite(blurred)
 
-	#plt.imshow(blurred,cmap=cm.binary_r)
-	#plt.show()      #testing, show images used for recognition
+	plt.imshow(blurred,cmap=cm.binary_r)
+	plt.show()      #testing, show images used for recognition
 
 	#perform edge detection, find contours in the edge map, and sort the
 	#resulting contours from left-to-right
@@ -180,18 +191,18 @@ def recognize():
 	lines = minimize_extreme_edges_by_crop(crop3, crop1, crop4, crop2, lines) # x1, y1, x2, y2
 	mapped_node_arr, mapped_edge_arr, edge_list = mapEdges(letterBoxes, lines)
 
-	# print(CBLB)
-	# for i in range(len(CBLB)):
-	# 	x, y, w, h, label_text = CBLB[i]
-	# 	x = int(x)
-	# 	y = int(y)
-	# 	w = int(w)
-	# 	h = int(h)
-	# 	cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
-	# 	cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-	# plt.imshow(WithChars)
-	# plt.axis('on')
-	# plt.show()
+	print(CBLB)
+	for i in range(len(CBLB)):
+		x, y, w, h, label_text = CBLB[i]
+		x = int(x)
+		y = int(y)
+		w = int(w)
+		h = int(h)
+		cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
+		cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+	plt.imshow(WithChars)
+	plt.axis('on')
+	plt.show()
 
 	return mapped_node_arr, mapped_edge_arr, edge_list
 
@@ -233,19 +244,19 @@ def modifyPreds(pred):
 	pred[9] = pred[9]           #9
 	pred[10] = pred[10]         #A
 	pred[11] = pred[11]         #B
-	pred[12] = pred[12] + .15   #C  is common
+	pred[12] = pred[12]		   	#C  is common
 	pred[13] = 0                #D  not used
 	pred[14] = 0                #E  not used
 	pred[15] = pred[15]         #F
 	pred[16] = 0                #G  not used
-	pred[17] = pred[17] + .15   #H  is common
+	pred[17] = pred[17]		   	#H  is common
 	pred[18] = 0                #I  not used
 	pred[19] = 0                #J  not used
 	pred[20] = pred[20]         #K
 	pred[21] = pred[21]         #L
 	pred[22] = pred[22]         #M
-	pred[23] = pred[23] + .15   #N` is common
-	pred[24] = pred[24] + .15   #O  is common
+	pred[23] = pred[23]		   	#N is common
+	pred[24] = pred[24]			#O is common
 	pred[25] = pred[25]         #P
 	pred[26] = 0                #Q  not used
 	pred[27] = pred[27]         #R
@@ -269,7 +280,14 @@ def modifyPreds(pred):
 	pred[45] = pred[45]         #r
 	pred[46] = pred[46]         #t
 
-	if np.argmax(pred) == 24:           #O needs extra help
+	#these are the most common, so always allow them if they are the max value
+	if np.argmax(pred) == 12 and pred[12] > .10:
+		pred[12] = pred[12] + 1
+	elif np.argmax(pred) == 17 and pred[17] > .10:
+		pred[17] = pred[17] + 1
+	elif np.argmax(pred) == 23 and pred[23] > .10:
+		pred[23] = pred[23] + 1
+	elif np.argmax(pred) == 24 and pred[24] > .10:
 		pred[24] = pred[24] + 1
 
 	return pred
