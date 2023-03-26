@@ -2,18 +2,18 @@
 import tkinter as tk
 import math
 from tkinter import filedialog as fido # duplicate
+from Classes.graph import Graph
+from Classes.bonds import Bond
+from Classes.bonds import CovalentBond
+from Classes.bonds import SingleBond
+from Classes.bonds import DoubleBond
+from Classes.bonds import TripleBond
+from Classes.atom import Atom
+import Classes.constants as CONSTANT
+from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 
-import math
 
-
-#globals
-letters = []                #holds letter IDs
-letterBondings = []        #parallel array for letters, holds bonded line points for 
-singleBonds = []            #holds single bond IDs
-doubleBonds = []            #holds double bond IDs
-tripleBonds = []            #holds triple bond IDs
-
-
+'''
 class SingleBond:
 	# constructor method. It takes in a canvas object, and two points (start and end)
 	# and creates a line between them with the create_line method of the canvas object.
@@ -566,6 +566,7 @@ class Dropdown(tk.Frame):
 		letter_obj = Letter(self.canvas, self.selected_option, event.x, event.y)
 		self.selected_option = None
 
+
 class Letter:
 	# constructor method that takes in canvas object, a letter string, and the x, y, coordinates
 	# where the letter should be placed on the canvas.
@@ -653,12 +654,20 @@ class Letter:
 	# To add another letter the Add Atom menu needs another selection of what needs added.
 	def deselect(self, event):
 		self.selected = False
-
+'''
 
 
 # main class for the GUI application
 class Gui_Edit_Molecule():
 	def __init__(self, window: tk.Tk):
+		#class-wide lists
+		self.letters = []			#holds letter IDs
+		self.letterBondings = []	#parallel array for letters, holds bonded lines
+									#i = letter, j = bond, k = bond info, l (only for k = 0) = parts of bond
+		self.singleBonds = []		#holds single bond IDs
+		self.doubleBonds = []		#holds double bond IDs
+		self.tripleBonds = []		#holds triple bond IDs
+
 		# takes in a window object, intializes a dropdown and a canvas object
 		# and packs them into the window.
 		self.window = window
@@ -667,8 +676,15 @@ class Gui_Edit_Molecule():
 		# screen height is temporarily changed from SH-100 to SH-300 for testing purposes
 		self.canvas = tk.Canvas(self.window, bg="white", width=900, height=(self.window.winfo_screenheight()-300))
 
-		self.dropdown = Dropdown(self.canvas, window=self.window)
+		#create dropdown menu for atoms
+		self.atomDropDownName = tk.StringVar()
+		self.atomDropDownName.set("Add Atom")
+		self.options = ["H","Li","Be","B","C","N","O","F","Na","Mg","Al","Si","P","S","Cl","K","Ca","As","Se","Br","Sr","Sn","Sb","Ba","Pb","Bi","Ra"]
+		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.select_option)
+		#self.dropdown.pack(side="left")
+
 		self.dropdown.pack(anchor=tk.NW, pady=2)
+
 		# self.canvas = tk.Canvas(self.window, bg="white", width=900, height=600)
 		self.canvas.pack(fill=tk.BOTH)
 		
@@ -708,12 +724,10 @@ class Gui_Edit_Molecule():
 		self.btn_double_bond = tk.Button(self.frame_btn_double_bond, text="Double Bond", command=self.create_double_bond)
 		self.btn_double_bond.pack()
 		self.double_bond_creator = None
-		self.doubleBonds = []
 		
 		self.btn_triple_bond = tk.Button(self.frame_btn_triple_bond, text="Triple Bond", command=self.create_triple_bond)
 		self.btn_triple_bond.pack()
 		self.triple_bond_creator = None
-		self.tripleBonds = []
 		
 		# delete atoms and bonds on canvas
 		btn_delete = tk.Button(self.frame_btn_delete, text="Delete", command=self.activate_delete)
@@ -728,6 +742,96 @@ class Gui_Edit_Molecule():
 
 		btn_quit = tk.Button(self.frame_btn_quit, text="Exit", command=self.window.destroy)
 		btn_quit.pack()
+
+#############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
+
+	#for select atom dropdown
+	def select_option(self, option):
+		self.selected_option = option
+		self.atomDropDownName.set("Add Atom")
+		self.canvas.bind("<Button-1>", self.place_letter)
+	
+	#place a letter on the canvas
+	def place_letter(self, event):
+		self.textbox = self.canvas.create_text(event.x, event.y, text=self.selected_option, font=("Arial", 20), tags="letter")
+		self.selected_option = None
+		self.letters.append(self.textbox)
+		self.letterBondings.append([])
+		self.canvas.unbind("<Button-1>")
+		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select)
+		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move)
+		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect)
+
+	def select(self, event):
+		self.selected = True
+		self.current_x = event.x
+		self.current_y = event.y
+		print(self.letterBondings)
+		for ID in self.letters:
+			x, y = self.canvas.coords(ID)
+			if event.x < x + 20 and event.x > x - 20 and event.y < y + 20 and event.y > y - 20:
+				self.textbox = ID
+				break
+
+	def move(self, event):
+		if self.selected:
+			dx = event.x - self.current_x
+			dy = event.y - self.current_y
+			self.canvas.move(self.textbox, dx, dy)
+			self.current_x = event.x
+			self.current_y = event.y
+
+			#move lines
+			index = self.letters.index(self.textbox)
+			for i in range(len(self.letterBondings[index])):
+				#get anchor points for the line
+				if self.letterBondings[index][i][1] == "STARTwithEND":
+					x1, y1 = self.canvas.coords(self.textbox)
+					x2, y2 = self.canvas.coords(self.letterBondings[index][i][2])                 
+				elif self.letterBondings[index][i][1] == "ENDwithSTART":
+					x1, y1 = self.canvas.coords(self.letterBondings[index][i][2])
+					x2, y2 = self.canvas.coords(self.textbox)
+				elif self.letterBondings[index][i][1] == "STARTnoEND":
+					x1, y1 = self.canvas.coords(self.textbox)
+					x2, y2 = self.letterBondings[index][i][2]
+				elif self.letterBondings[index][i][1] == "ENDnoSTART":
+					x1, y1 = self.letterBondings[index][i][2]
+					x2, y2 = self.canvas.coords(self.textbox)
+
+				#calculate points for the line
+				if x1 - x2 != 0:
+					angle = math.atan((y1 - y2)/(x1 - x2))
+				elif y1 >= y2:
+					angle = math.pi/2
+				elif y1 < y2:
+					angle = -math.pi/2
+				if x1 >= x2:
+					x1 = x1 - 20*math.cos(angle)
+					x2 = x2 + 20*math.cos(angle)
+					y1 = y1 - 20*math.sin(angle)
+					y2 = y2 + 20*math.sin(angle)
+				else:
+					x1 = x1 + 20*math.cos(angle)
+					x2 = x2 - 20*math.cos(angle)
+					y1 = y1 + 20*math.sin(angle)
+					y2 = y2 - 20*math.sin(angle)
+
+				#reset anchors back to point if they aren't attached to a letter, no pivoting
+				if self.letterBondings[index][i][1] == "STARTnoEND":
+					x2, y2 = self.letterBondings[index][i][2]
+				elif self.letterBondings[index][i][1] == "ENDnoSTART":
+					x1, y1 = self.letterBondings[index][i][2]
+
+				#update line
+				for lineID in self.letterBondings[index][i][0]:
+					self.canvas.coords(lineID, x1, y1, x2, y2)
+		
+	# sets the selected attribute to False so only one letter will be placed at a time.
+	# To add another letter the Add Atom menu needs another selection of what needs added.
+	def deselect(self, event):
+		self.selected = False
+
+###################################################  PICTURES, AI, and CAMERA  ###################################################
 
 	# draws a rectangle outline for the browseFiles def
 	def drawrectangle(self):
@@ -786,6 +890,8 @@ class Gui_Edit_Molecule():
 	def send_image(self):
 		self.canvas.delete("all")
 		
+######################################################   DELETE BUTTON  #####################################################
+
 	def deactivate_delete(self):
 		self.is_delete_active = False
 		
@@ -794,65 +900,224 @@ class Gui_Edit_Molecule():
 		
 		# Unbind click events for deletion
 		self.canvas.unbind('<ButtonPress-1>')
-		
+
 	def delete_click(self, event):
 		# find closest x and y value that has an object
 		item = self.canvas.find_closest(event.x, event.y)[0]
 		
 		# Check if item is a letter or bond object, delete that item, and return cursor back to normal.
 		#if self.canvas.type(item) in ["text", "line"]:
-		global letters, letterBondings, singleBonds, doubleBonds, tripleBonds
-		for i in range(len(tripleBonds)):
-			if item in tripleBonds[i]:
-				self.canvas.delete(tripleBonds[i][0])
-				self.canvas.delete(tripleBonds[i][1])
-				self.canvas.delete(tripleBonds[i][2])
-				tripleBonds.pop(i)
+		for i in range(len(self.tripleBonds)):
+			if item in self.tripleBonds[i]:
+				self.canvas.delete(self.tripleBonds[i][0])
+				self.canvas.delete(self.tripleBonds[i][1])
+				self.canvas.delete(self.tripleBonds[i][2])
+				self.tripleBonds.pop(i)
 				break       #the breaks in here are to fix a bug
-		for i in range(len(doubleBonds)):
-			if item in doubleBonds[i]:
-				self.canvas.delete(doubleBonds[i][0])
-				self.canvas.delete(doubleBonds[i][0])
-				doubleBonds.pop(i)
+		for i in range(len(self.doubleBonds)):
+			if item in self.doubleBonds[i]:
+				self.canvas.delete(self.doubleBonds[i][0])
+				self.canvas.delete(self.doubleBonds[i][0])
+				self.doubleBonds.pop(i)
 				break       #if you pop from array, it doesn't update len(array)
-		for i in range(len(singleBonds)):
+		for i in range(len(self.singleBonds)):
 			#delete single bond from singleBonds
-			if item in singleBonds[i]:
-				self.canvas.delete(singleBonds[i][0])
-				singleBonds.pop(i)
+			if item in self.singleBonds[i]:
+				self.canvas.delete(self.singleBonds[i][0])
+				self.singleBonds.pop(i)
 				break
-		for i in range(len(letters)):
-			if item == letters[i]:
-				self.canvas.delete(letters[i])
+		for i in range(len(self.letters)):
+			if item == self.letters[i]:
+				self.canvas.delete(self.letters[i])
 				#delete the lines connected to the letter
-				for j in range(len(letterBondings[i])):
-					for l in range(len(letterBondings[i][j][0])):
-						self.canvas.delete(letterBondings[i][j][0][l])
+				for j in range(len(self.letterBondings[i])):
+					for l in range(len(self.letterBondings[i][j][0])):
+						self.canvas.delete(self.letterBondings[i][j][0][l])
 				#delete the items from the arrays
-				letters.pop(i)
-				letterBondings.pop(i)
+				self.letters.pop(i)
+				self.letterBondings.pop(i)
 				break
 		#remove lines and letters from associated letterBondings
-		for i in range(len(letterBondings)):
-			for j in range(len(letterBondings[i])):
-				if item in letterBondings[i][j][0] or item in letterBondings[i][j]:
-					letterBondings[i].pop(j)
+		for i in range(len(self.letterBondings)):
+			for j in range(len(self.letterBondings[i])):
+				if item in self.letterBondings[i][j][0] or item in self.letterBondings[i][j]:
+					self.letterBondings[i].pop(j)
 					break
 				
 		self.deactivate_delete()
+
+##################################################   BONDS and LINES   ##################################################
 	
 	# When the Single, Double or Triple Bond button is clicked it initializes
 	# Single, Double, and TripleBondCreator object if one doesn't already exist. or if the current
 	# SingleBondCreator object is already being used to create a bond.
 	def create_single_bond(self):
-		if self.single_bond_creator is None or self.single_bond_creator.line_instance is not None:
-			self.single_bond_creator = BondCreator(self.canvas)
+		self.bond_type = 1
+		self.create_bond()
 			
 	def create_double_bond(self):
-		if self.double_bond_creator is None or self.double_bond_creator.line_instance is not None:
-			self.double_bond_creator = DoubleBondCreator(self.canvas)
+		self.bond_type = 2
+		self.create_bond()
 			
 	def create_triple_bond(self):
-		if self.triple_bond_creator is None or self.triple_bond_creator.line_instance is not None:
-			self.triple_bond_creator = TripleBondCreator(self.canvas)
+		self.bond_type = 3
+		self.create_bond()
+
+	def create_bond(self):
+		self.lineStart = None
+		self.startConnected = False
+		self.lineEnd = None
+		self.endConnected = False
+		self.line_instance = None
+		self.canvas.bind("<Button-1>", self.on_click)
+		self.startLetter = -1
+		self.endLetter = -1
+
+	# Checks if line instance is None. If it is, it sets "start" to the current mouse position (event.x, event.y).
+	# If it isn't, it sets "end" to the current mouse position and creates a new Bond object using
+	# self.canvas, self.start, self.end. Finally it resets "start" and "end" back to None.
+	def on_click(self, event):
+		print("ok")
+		if self.line_instance is None:
+			if self.lineStart is None:
+				# keep mouse position so we can change it
+				point_x, point_y = event.x, event.y
+
+				# check if we are inside a letter
+				for letter in self.letters:
+					letter_x, letter_y = self.canvas.coords(letter)
+					within_x_boundary: bool = event.x < letter_x + 20 and event.x > letter_x - 20
+					within_y_boundary: bool = event.y < letter_y + 20 and event.y > letter_y - 20
+
+					if within_x_boundary and within_y_boundary:
+						point_x, point_y = letter_x, letter_y
+
+						# set bonded status
+						self.startLetter = letter
+						self.startConnected = True
+						break
+
+				# set start coordinates for bond
+				self.lineStart = (point_x, point_y)
+
+			else:
+				point_x, point_y = event.x, event.y   # keep mouse position so we can change it
+
+				# check if we are inside a letter
+
+				for letter in self.letters:
+					x, y = self.canvas.coords(letter)
+
+					if event.x < x + 20 and event.x > x - 20 and event.y < y + 20 and event.y > y - 20:
+						point_x, point_y = x, y
+
+						# set bonded status
+						self.endLetter = letter
+						self.endConnected = True
+						break
+
+				
+				self.lineEnd = (point_x, point_y)
+
+				# calculate snap line to connected letters
+				start_x, start_y = self.lineStart
+				end_x, end_y = self.lineEnd
+				startPoint = self.lineStart     # these two are for the letterBonding array
+				endPoint = self.lineEnd
+
+				if start_x - end_x != 0:
+					angle = math.atan((start_y - end_y)/(start_x - end_x))
+				elif start_y >= end_y:
+					angle = math.pi/2
+				elif start_y < end_y:
+					angle = -math.pi/2
+
+				if start_x >= end_x:
+					start_x = start_x - 20*math.cos(angle)
+					end_x = end_x + 20*math.cos(angle)
+					start_y = start_y - 20*math.sin(angle)
+					end_y = end_y + 20*math.sin(angle)
+				else:
+					start_x = start_x + 20*math.cos(angle)
+					end_x = end_x - 20*math.cos(angle)
+					start_y = start_y + 20*math.sin(angle)
+					end_y = end_y - 20*math.sin(angle)
+
+				# if connected to a letter, snap line to letter
+				if self.startConnected:
+					self.lineStart = (start_x, start_y)
+				if self.endConnected:
+					self.lineEnd = (end_x, end_y)
+
+				AddLine = True
+
+				# don't allow the bond to be created if a bond already exists
+				if self.startConnected and self.endConnected:
+					if self.startLetter != self.endLetter:
+						for j in range(len(self.letterBondings[self.letters.index(self.startLetter)])):
+							if \
+								self.letterBondings[self.letters.index(self.startLetter)][j][1] == "STARTwithEND" and \
+								self.letterBondings[self.letters.index(self.startLetter)][j][2] == self.endLetter:
+								AddLine = False
+
+					# Prevent self bonding
+					if self.startLetter == self.endLetter:
+						AddLine = False
+
+				# draw line                                                                                                             
+				if AddLine:
+					if self.bond_type == 1:
+						sB = []
+						sB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, tags="bond"))
+						self.singleBonds.append(sB)
+					elif self.bond_type == 2:
+						dB = []
+						dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="black", tags="bond"))
+						dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="white", tags="bond"))
+						self.doubleBonds.append(dB)
+					elif self.bond_type == 3:
+						tB = []
+						tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=20, fill="black", tags="bond"))
+						tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="white", tags="bond"))
+						tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="black", tags="bond"))
+						self.tripleBonds.append(tB)
+
+				#add lines to letterBondings so we know the objects are supposed to be connected
+				#letterBondings:  lineIDs  |   anchor type flags   |   anchors (either a letter or a point, we know the difference from the flag)
+				if self.bond_type == 1:
+					if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
+						self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTwithEND", self.endLetter))
+						self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDwithSTART", self.startLetter))    
+					elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
+						self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTnoEND", endPoint))
+					elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
+						self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDnoSTART", startPoint))
+
+				elif self.bond_type == 2:
+					if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
+						self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTwithEND", self.endLetter))
+						self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDwithSTART", self.startLetter))    
+					elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
+						self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTnoEND", endPoint))
+					elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
+						self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDnoSTART", startPoint))
+
+				elif self.bond_type == 3:
+					if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
+						self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTwithEND", self.endLetter))
+						self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDwithSTART", self.startLetter))    
+					elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
+						self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTnoEND", endPoint))
+					elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
+						self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDnoSTART", startPoint))
+
+				self.startLetter = -1
+				self.endLetter = -1
+				self.startConnected = False
+				self.endConnected = False
+				self.line_instance = 1
+				
+				self.start = None
+				self.end = None
+		
 
