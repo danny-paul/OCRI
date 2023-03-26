@@ -662,11 +662,14 @@ class Gui_Edit_Molecule():
 	def __init__(self, window: tk.Tk):
 		#class-wide lists
 		self.letters = []			#holds letter IDs
+		self.atom_list = []			#holds atom objects
 		self.letterBondings = []	#parallel array for letters, holds bonded lines
 									#i = letter, j = bond, k = bond info, l (only for k = 0) = parts of bond
 		self.singleBonds = []		#holds single bond IDs
 		self.doubleBonds = []		#holds double bond IDs
 		self.tripleBonds = []		#holds triple bond IDs
+		self.bond_list = []			#holds the list of bonds
+		self.graph = None			#holds the current graph of the atom
 
 		# takes in a window object, intializes a dropdown and a canvas object
 		# and packs them into the window.
@@ -709,12 +712,6 @@ class Gui_Edit_Molecule():
 
 		self.frame_btn_quit = tk.Frame(self.window)
 		self.frame_btn_quit.pack(side=tk.LEFT, pady=2)
-		
-		# Intializes an empty list letters to store the Letters objects.
-		self.letters = []
-		
-		# binds the place_letter method to the canvas object to listen for mouse clicks on the canvas.
-		#self.canvas.bind("<Button-1>", self.place_letter)
 
 		# init buttons with frames
 		self.btn_single_bond = tk.Button(self.frame_btn_single_bond, text="Single Bond", command=self.create_single_bond)
@@ -1063,6 +1060,11 @@ class Gui_Edit_Molecule():
 					# Prevent self bonding
 					if self.startLetter == self.endLetter:
 						AddLine = False
+
+					#try to form bond
+					if self.bond_type == 1:
+						self.bond_list.append(self.atom_list(self.letters.index(self.startLetter),
+					   self.atom_list(self.letters.index(self.endLetter))))
 
 				# draw line                                                                                                             
 				if AddLine:
