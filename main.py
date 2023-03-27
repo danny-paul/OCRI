@@ -23,8 +23,8 @@ def main():
 	#start GUI
 	root = tk.Tk()
 	root.title("OCRI Interface")
-	app = GUI.Main(root)
-    #root.attributes('-fullscreen',True) # Makes the root frame start in fullscreen
+	app = GUI.Gui_Edit_Molecule(root)
+	#root.attributes('-fullscreen',True) # Makes the root frame start in fullscreen
 	root.resizable(False,False)         # Does not allow user to resize the frame
 	root.mainloop()
 	'''
