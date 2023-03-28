@@ -1,7 +1,8 @@
 
 import tkinter as tk
 import math
-from tkinter import filedialog as fido # duplicate
+from tkinter import NORMAL, Toplevel, filedialog as fido
+from tkinter import ttk # duplicate
 from Classes.graph import Graph
 from Classes.bonds import Bond
 from Classes.bonds import CovalentBond
@@ -35,7 +36,7 @@ class Gui_Edit_Molecule():
 		self.x = self.y = 0
 
 		# screen height is temporarily changed from SH-100 to SH-300 for testing purposes
-		self.canvas = tk.Canvas(self.window, bg="white", width=900, height=(self.window.winfo_screenheight()-300))
+		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-300), height=(self.window.winfo_screenheight()-300))
 
 		#create dropdown menu for atoms
 		self.atomDropDownName = tk.StringVar()
@@ -44,32 +45,10 @@ class Gui_Edit_Molecule():
 		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.select_option)
 		#self.dropdown.pack(side="left")
 
-		self.dropdown.pack(anchor=tk.NW, pady=2)
+		self.dropdown.grid(row = 0, column = 0)
 
 		# self.canvas = tk.Canvas(self.window, bg="white", width=900, height=600)
-		self.canvas.pack(fill=tk.BOTH)
-		
-		# Intitalizes four Frame objects and packs them in the window for the bond and delete buttons
-		self.frame_btn_single_bond = tk.Frame(self.window)
-		self.frame_btn_single_bond.pack(side=tk.LEFT, pady=2)
-		
-		self.frame_btn_double_bond = tk.Frame(self.window)
-		self.frame_btn_double_bond.pack(side=tk.LEFT, pady=2)
-		
-		self.frame_btn_triple_bond = tk.Frame(self.window)
-		self.frame_btn_triple_bond.pack(side=tk.LEFT, pady=2)
-		
-		self.frame_btn_delete = tk.Frame(self.window)
-		self.frame_btn_delete.pack(side=tk.LEFT, pady=2)
-
-		self.frame_btn_import_file = tk.Frame(self.window)
-		self.frame_btn_import_file.pack(side=tk.LEFT, pady=2)
-
-		self.frame_btn_translate_image = tk.Frame(self.window)
-		self.frame_btn_translate_image.pack(side=tk.LEFT, pady=2)
-
-		self.frame_btn_quit = tk.Frame(self.window)
-		self.frame_btn_quit.pack(side=tk.LEFT, pady=2)
+		self.canvas.grid(row = 1, column = 0, columnspan = 7)		
 		
 		# Intializes an empty list letters to store the Letters objects.
 		self.letters = []
@@ -77,32 +56,36 @@ class Gui_Edit_Molecule():
 		# binds the place_letter method to the canvas object to listen for mouse clicks on the canvas.
 		#self.canvas.bind("<Button-1>", self.place_letter)
 
+		# init for Input Field
+		self.Comment_Field = tk.Entry(width = 200)
+		self.Comment_Field.grid(row = 2, column = 0, columnspan = 7)
+
 		# init buttons with frames
-		self.btn_single_bond = tk.Button(self.frame_btn_single_bond, text="Single Bond", command=self.create_single_bond)
-		self.btn_single_bond.pack()
+		self.btn_single_bond = tk.Button(text="Single Bond", padx = 15, command=self.create_single_bond)
+		self.btn_single_bond.grid(row = 3, column = 0)
 		self.single_bond_creator = None
 		
-		self.btn_double_bond = tk.Button(self.frame_btn_double_bond, text="Double Bond", command=self.create_double_bond)
-		self.btn_double_bond.pack()
+		self.btn_double_bond = tk.Button(text="Double Bond", padx = 15, command=self.create_double_bond)
+		self.btn_double_bond.grid(row = 3, column = 1)
 		self.double_bond_creator = None
 		
-		self.btn_triple_bond = tk.Button(self.frame_btn_triple_bond, text="Triple Bond", command=self.create_triple_bond)
-		self.btn_triple_bond.pack()
+		self.btn_triple_bond = tk.Button(text="Triple Bond", padx = 15, command=self.create_triple_bond)
+		self.btn_triple_bond.grid(row = 3, column = 2)
 		self.triple_bond_creator = None
 		
 		# delete atoms and bonds on canvas
-		btn_delete = tk.Button(self.frame_btn_delete, text="Delete", command=self.activate_delete)
-		btn_delete.pack()
+		self.btn_delete = tk.Button(text="Delete", padx = 50, command=self.activate_delete)
+		self.btn_delete.grid(row = 3, column = 3)
 		self.is_delete_active = False
 
-		btn_import_file = tk.Button(self.frame_btn_import_file, text="Import", command=self.browseFiles)
-		btn_import_file.pack()
+		self.btn_import_file = tk.Button(text="Import", padx = 50, command=self.browseFiles)
+		self.btn_import_file.grid(row = 3, column = 4)
 
-		btn_translate_image = tk.Button(self.frame_btn_translate_image, text="Translate Image", state = tk.DISABLED, command=self.send_image)
-		btn_translate_image.pack()
+		self.btn_translate_image = tk.Button(text="Translate Image", state = tk.DISABLED, command=self.send_image)
+		self.btn_translate_image.grid(row = 3, column = 5)
 
-		btn_quit = tk.Button(self.frame_btn_quit, text="Exit", command=self.window.destroy)
-		btn_quit.pack()
+		self.btn_quit = tk.Button(text="Exit", padx = 65, command=self.window.destroy)
+		self.btn_quit.grid(row = 3, column = 6)
 
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
 
@@ -242,6 +225,7 @@ class Gui_Edit_Molecule():
 		# Bind click events to handle deletion
 		self.canvas.bind('<ButtonPress-1>', self.delete_click)
 
+	# Command for the import button
 	def browseFiles(self):
 		self.canvas.delete("all")
 		image_name = fido.askopenfilename(title = "Pick your image")
@@ -250,10 +234,70 @@ class Gui_Edit_Molecule():
 			self.image = tk.PhotoImage(file = image_name)
 			self.canvas.create_image((0, 0), image = self.image, anchor = tk.NW)
 			#self.canvas.create_image((root.winfo_screenheight(),root.winfo_screenmmwidth()), image = self.image, anchor = tk.NW)
-		self.drawrectangle()
+		
+		# Creates popup window
+		self.crop_popup()
 
+	# Command for translate image button
 	def send_image(self):
+		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Image Transfered to Recognizer")
 		self.canvas.delete("all")
+		self.import_translate_enable_buttons()
+
+	# Creates a popup window after the filebrowser has selected an image.
+	def crop_popup(self):
+
+		self.import_translate_disable_buttons()
+
+		def accept():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Image Accepted")
+			self.btn_translate_image.configure(state = tk.NORMAL)
+			popup.destroy()
+
+		def crop():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Crop Image Please")
+			self.btn_translate_image.configure(state = tk.NORMAL)
+			popup.destroy()
+			self.drawrectangle()
+
+		def cancel():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Import Canceled")
+			self.import_translate_enable_buttons()
+			popup.destroy()
+			self.canvas.delete("all")
+
+		popup = tk.Tk()
+		popup.title("Confirmation window")
+
+		button_accept = ttk.Button(popup, text = "Accept", command = accept)
+		button_accept.pack()
+
+		button_crop = ttk.Button(popup, text = "Crop", command = crop)
+		button_crop.pack()
+
+		button_cancel = ttk.Button(popup, text = "Cancel", command = cancel)
+		button_cancel.pack()
+
+		popup.mainloop()
+
+	# functions to disable/enable buttons for the import and translate button functions
+	def import_translate_disable_buttons(self):
+		self.btn_single_bond.configure(state = tk.DISABLED)		
+		self.btn_double_bond.configure(state = tk.DISABLED)
+		self.btn_triple_bond.configure(state = tk.DISABLED)
+		self.btn_delete.configure(state = tk.DISABLED)
+		self.btn_import_file.configure(state = tk.DISABLED)
+
+	def import_translate_enable_buttons(self):
+			self.btn_single_bond.configure(state = tk.NORMAL)		
+			self.btn_double_bond.configure(state = tk.NORMAL)
+			self.btn_triple_bond.configure(state = tk.NORMAL)
+			self.btn_delete.configure(state = tk.NORMAL)
+			self.btn_import_file.configure(state = tk.NORMAL)
 		
 ######################################################   DELETE BUTTON  #####################################################
 
