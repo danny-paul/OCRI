@@ -13,8 +13,6 @@ from Classes.atom import Atom
 import Classes.constants as CONSTANT
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 
-import pprint
-
 # main class for the GUI application
 class Gui_Edit_Molecule():
 	def __init__(self, window: tk.Tk):
@@ -23,7 +21,6 @@ class Gui_Edit_Molecule():
 		self.atom_list = []			#holds atom objects for graph
 		self.letterBondings = []	#parallel array for letters, holds bonded lines
 									#i = letter, j = bond, k = bond info, l (only for k = 0) = parts of bond
-		self.dict_letter_bonding = dict() # key=address of letter
 		
 		self.singleBonds = []		#holds single bond IDs
 		self.doubleBonds = []		#holds double bond IDs
@@ -622,7 +619,6 @@ class Gui_Edit_Molecule():
 				self.start = None
 				self.end = None
 
-				pp = pprint.PrettyPrinter()
 				print('structure of letterBondings:\n')
 				for index, value in enumerate(self.letterBondings):
 					print('index[', str(index), ']:', str(value))
