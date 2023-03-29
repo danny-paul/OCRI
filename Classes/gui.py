@@ -13,6 +13,8 @@ from Classes.atom import Atom
 import Classes.constants as CONSTANT
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 
+import pprint
+
 # main class for the GUI application
 class Gui_Edit_Molecule():
 	def __init__(self, window: tk.Tk):
@@ -21,6 +23,8 @@ class Gui_Edit_Molecule():
 		self.atom_list = []			#holds atom objects for graph
 		self.letterBondings = []	#parallel array for letters, holds bonded lines
 									#i = letter, j = bond, k = bond info, l (only for k = 0) = parts of bond
+		self.dict_letter_bonding = dict() # key=address of letter
+		
 		self.singleBonds = []		#holds single bond IDs
 		self.doubleBonds = []		#holds double bond IDs
 		self.tripleBonds = []		#holds triple bond IDs
@@ -42,7 +46,7 @@ class Gui_Edit_Molecule():
 		self.atomDropDownName = tk.StringVar()
 		self.atomDropDownName.set("Add Atom")
 		self.options = ["H","Li","Be","B","C","N","O","F","Na","Mg","Al","Si","P","S","Cl","K","Ca","As","Se","Br","Sr","Sn","Sb","Ba","Pb","Bi","Ra"]
-		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.select_option)
+		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
 		#self.dropdown.pack(side="left")
 
 		self.dropdown.grid(row = 0, column = 0)
@@ -90,7 +94,7 @@ class Gui_Edit_Molecule():
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
 
 	#for select atom dropdown
-	def select_option(self, option):
+	def dropdown_select_option(self, option):
 		self.selected_option = option
 		self.atomDropDownName.set("Add Atom")
 		self.canvas.bind("<Button-1>", self.place_letter)
@@ -99,6 +103,7 @@ class Gui_Edit_Molecule():
 	def place_letter(self, event):
 		self.textbox = self.canvas.create_text(event.x, event.y, text=self.selected_option, font=("Arial", 20), tags="letter")
 		self.letters.append(self.textbox)
+
 		#add atom object
 		atom = Atom(self.selected_option)
 		self.atom_list.append(atom)
@@ -106,11 +111,11 @@ class Gui_Edit_Molecule():
 		self.selected_option = None
 		self.letterBondings.append([])
 		self.canvas.unbind("<Button-1>")
-		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select)
-		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move)
-		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect)
+		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
+		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
+		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
 
-	def select(self, event):
+	def select_textbox(self, event):
 		self.selected = True
 		self.current_x = event.x
 		self.current_y = event.y
@@ -121,7 +126,7 @@ class Gui_Edit_Molecule():
 				self.textbox = ID
 				break
 
-	def move(self, event):
+	def move_textbox(self, event):
 		if self.selected:
 			dx = event.x - self.current_x
 			dy = event.y - self.current_y
@@ -133,18 +138,21 @@ class Gui_Edit_Molecule():
 			index = self.letters.index(self.textbox)
 			for i in range(len(self.letterBondings[index])):
 				#get anchor points for the line
-				if self.letterBondings[index][i][1] == "STARTwithEND":
-					x1, y1 = self.canvas.coords(self.textbox)
-					x2, y2 = self.canvas.coords(self.letterBondings[index][i][2])                 
-				elif self.letterBondings[index][i][1] == "ENDwithSTART":
-					x1, y1 = self.canvas.coords(self.letterBondings[index][i][2])
-					x2, y2 = self.canvas.coords(self.textbox)
-				elif self.letterBondings[index][i][1] == "STARTnoEND":
-					x1, y1 = self.canvas.coords(self.textbox)
-					x2, y2 = self.letterBondings[index][i][2]
-				elif self.letterBondings[index][i][1] == "ENDnoSTART":
-					x1, y1 = self.letterBondings[index][i][2]
-					x2, y2 = self.canvas.coords(self.textbox)
+				x1, y1 = self.canvas.coords(self.textbox)
+				x2, y2 = self.canvas.coords(self.letterBondings[index][i][1])     
+				
+				# if self.letterBondings[index][i][1] == "STARTwithEND":
+				# 	x1, y1 = self.canvas.coords(self.textbox)
+				# 	x2, y2 = self.canvas.coords(self.letterBondings[index][i][2])                 
+				# elif self.letterBondings[index][i][1] == "ENDwithSTART":
+				# 	x1, y1 = self.canvas.coords(self.letterBondings[index][i][2])
+				# 	x2, y2 = self.canvas.coords(self.textbox)
+				# elif self.letterBondings[index][i][1] == "STARTnoEND":
+				# 	x1, y1 = self.canvas.coords(self.textbox)
+				# 	x2, y2 = self.letterBondings[index][i][2]
+				# elif self.letterBondings[index][i][1] == "ENDnoSTART":
+				# 	x1, y1 = self.letterBondings[index][i][2]
+				# 	x2, y2 = self.canvas.coords(self.textbox)
 
 				#calculate points for the line
 				if x1 - x2 != 0:
@@ -165,10 +173,10 @@ class Gui_Edit_Molecule():
 					y2 = y2 - 20*math.sin(angle)
 
 				#reset anchors back to point if they aren't attached to a letter, no pivoting
-				if self.letterBondings[index][i][1] == "STARTnoEND":
-					x2, y2 = self.letterBondings[index][i][2]
-				elif self.letterBondings[index][i][1] == "ENDnoSTART":
-					x1, y1 = self.letterBondings[index][i][2]
+				# if self.letterBondings[index][i][1] == "STARTnoEND":
+				# 	x2, y2 = self.letterBondings[index][i][2]
+				# elif self.letterBondings[index][i][1] == "ENDnoSTART":
+				# 	x1, y1 = self.letterBondings[index][i][2]
 
 				#update line
 				for lineID in self.letterBondings[index][i][0]:
@@ -176,7 +184,7 @@ class Gui_Edit_Molecule():
 		
 	# sets the selected attribute to False so only one letter will be placed at a time.
 	# To add another letter the Add Atom menu needs another selection of what needs added.
-	def deselect(self, event):
+	def deselect_textbox(self, event):
 		self.selected = False
 
 ###################################################  PICTURES, AI, and CAMERA  ###################################################
@@ -402,19 +410,20 @@ class Gui_Edit_Molecule():
 		self.lineEnd = None
 		self.endConnected = False
 		self.line_instance = None
-		self.canvas.bind("<Button-1>", self.on_click)
+		self.canvas.bind("<Button-1>", self.on_click_bond)
 		self.startLetter = -1
 		self.endLetter = -1
+		self.Comment_Field.delete(0, "end") # clears for potential bond errors
 
 	# Checks if line instance is None. If it is, it sets "start" to the current mouse position (event.x, event.y).
 	# If it isn't, it sets "end" to the current mouse position and creates a new Bond object using
 	# self.canvas, self.start, self.end. Finally it resets "start" and "end" back to None.
-	def on_click(self, event):
+	def on_click_bond(self, event):
 		print("ok")
 		if self.line_instance is None:
 			if self.lineStart is None:
 				# keep mouse position so we can change it
-				point_x, point_y = event.x, event.y
+				point_x, point_y = -1, -1
 
 				# check if we are inside a letter
 				for letter in self.letters:
@@ -429,12 +438,26 @@ class Gui_Edit_Molecule():
 						self.startLetter = letter
 						self.startConnected = True
 						break
+				if point_x == -1 and point_y == -1:
+					self.Comment_Field.delete(0, "end")
+					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over and select two atoms")
 
-				# set start coordinates for bond
-				self.lineStart = (point_x, point_y)
+					self.startLetter = -1
+					self.endLetter = -1
+					self.startConnected = False
+					self.endConnected = False
+					self.line_instance = 1
+					
+					self.start = None
+					self.end = None
+				else:
+					# set start coordinates for bond
+					self.lineStart = (point_x, point_y)
+					
 
 			else:
 				point_x, point_y = event.x, event.y   # keep mouse position so we can change it
+				point_x, point_y = -1, -1   # must bind to letter
 
 				# check if we are inside a letter
 
@@ -449,126 +472,146 @@ class Gui_Edit_Molecule():
 						self.endConnected = True
 						break
 
-				
-				self.lineEnd = (point_x, point_y)
-
-				# calculate snap line to connected letters
-				start_x, start_y = self.lineStart
-				end_x, end_y = self.lineEnd
-				startPoint = self.lineStart     # these two are for the letterBonding array
-				endPoint = self.lineEnd
-
-				if start_x - end_x != 0:
-					angle = math.atan((start_y - end_y)/(start_x - end_x))
-				elif start_y >= end_y:
-					angle = math.pi/2
-				elif start_y < end_y:
-					angle = -math.pi/2
-
-				if start_x >= end_x:
-					start_x = start_x - 20*math.cos(angle)
-					end_x = end_x + 20*math.cos(angle)
-					start_y = start_y - 20*math.sin(angle)
-					end_y = end_y + 20*math.sin(angle)
+				if (point_x == -1 and point_y == -1 ):
+					self.Comment_Field.delete(0, "end")
+					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over and select two atoms")
 				else:
-					start_x = start_x + 20*math.cos(angle)
-					end_x = end_x - 20*math.cos(angle)
-					start_y = start_y + 20*math.sin(angle)
-					end_y = end_y - 20*math.sin(angle)
+					# atom is bound to both
+					self.lineEnd = (point_x, point_y)
 
-				# if connected to a letter, snap line to letter
-				if self.startConnected:
-					self.lineStart = (start_x, start_y)
-				if self.endConnected:
-					self.lineEnd = (end_x, end_y)
+					# calculate snap line to connected letters
+					start_x, start_y = self.lineStart
+					end_x, end_y = self.lineEnd
+					startPoint = self.lineStart     # these two are for the letterBonding array
+					endPoint = self.lineEnd
 
-				AddLine = True
+					if start_x - end_x != 0:
+						angle = math.atan((start_y - end_y)/(start_x - end_x))
+					elif start_y >= end_y:
+						angle = math.pi/2
+					elif start_y < end_y:
+						angle = -math.pi/2
 
-				#actions to take if both anchors are letters
-				if self.startConnected and self.endConnected:
-					if self.startLetter != self.endLetter:
-						# don't allow the bond to be created if a bond already exists
-						for j in range(len(self.letterBondings[self.letters.index(self.startLetter)])):
-							if \
-								self.letterBondings[self.letters.index(self.startLetter)][j][1] == "STARTwithEND" and \
-								self.letterBondings[self.letters.index(self.startLetter)][j][2] == self.endLetter:
-								AddLine = False
+					if start_x >= end_x:
+						start_x = start_x - 20*math.cos(angle)
+						end_x = end_x + 20*math.cos(angle)
+						start_y = start_y - 20*math.sin(angle)
+						end_y = end_y + 20*math.sin(angle)
+					else:
+						start_x = start_x + 20*math.cos(angle)
+						end_x = end_x - 20*math.cos(angle)
+						start_y = start_y + 20*math.sin(angle)
+						end_y = end_y - 20*math.sin(angle)
 
-					# Prevent self bonding
-					if self.startLetter == self.endLetter:
-						AddLine = False
+					# if connected to a letter, snap line to letter
+					if self.startConnected:
+						self.lineStart = (start_x, start_y)
+					if self.endConnected:
+						self.lineEnd = (end_x, end_y)
 
-					#form bonds
-					try:
+					AddLine = True
+
+					# actions to take if both anchors are letters
+					if self.startConnected and self.endConnected:
+						if self.startLetter != self.endLetter:
+							# don't allow the bond to be created if a bond already exists
+							for j in range(len(self.letterBondings[self.letters.index(self.startLetter)])):
+								# if \
+								# 	self.letterBondings[self.letters.index(self.startLetter)][j][1] == "STARTwithEND" and \
+								# 	self.letterBondings[self.letters.index(self.startLetter)][j][2] == self.endLetter:
+								# 	AddLine = False
+
+								if \
+									self.letterBondings[self.letters.index(self.startLetter)][j][1] == self.endLetter:
+									
+									AddLine = False
+
+						# Prevent self bonding
+						if self.startLetter == self.endLetter:
+							AddLine = False
+							self.Comment_Field.delete(0, "end")
+							self.Comment_Field.insert(0, "Error: Cannot self bond")
+
+						#form bonds
+						try:
+							if self.bond_type == 1:
+								#print(self.atom_list[self.letters.index(self.startLetter)])
+								#print(self.atom_list[self.letters.index(self.endLetter)])
+								bond = SingleBond(self.atom_list[self.letters.index(self.startLetter)], \
+								self.atom_list[self.letters.index(self.endLetter)])
+								self.single_bond_list.append(bond)
+							elif self.bond_type == 2:
+								bond = DoubleBond(self.atom_list[self.letters.index(self.startLetter)], \
+								self.atom_list[self.letters.index(self.endLetter)])
+								self.double_bond_list.append(bond)
+							elif self.bond_type == 3:
+								bond = TripleBond(self.atom_list[self.letters.index(self.startLetter)], \
+								self.atom_list[self.letters.index(self.endLetter)])
+								self.triple_bond_list.append(bond)
+							#add to graph
+							self.graph.add_bond_via_bond_obj(bond)
+							#self.graph
+							print(self.graph)
+
+						except NameError as err:
+							print(err)
+							AddLine = False
+
+					# draw line                                                                                                             
+					if AddLine:
 						if self.bond_type == 1:
-							#print(self.atom_list[self.letters.index(self.startLetter)])
-							#print(self.atom_list[self.letters.index(self.endLetter)])
-							bond = SingleBond(self.atom_list[self.letters.index(self.startLetter)], \
-							self.atom_list[self.letters.index(self.endLetter)])
-							self.single_bond_list.append(bond)
+							sB = []
+							sB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, tags="bond"))
+							self.singleBonds.append(sB)
 						elif self.bond_type == 2:
-							bond = DoubleBond(self.atom_list[self.letters.index(self.startLetter)], \
-							self.atom_list[self.letters.index(self.endLetter)])
-							self.double_bond_list.append(bond)
+							dB = []
+							dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="black", tags="bond"))
+							dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="white", tags="bond"))
+							self.doubleBonds.append(dB)
 						elif self.bond_type == 3:
-							bond = TripleBond(self.atom_list[self.letters.index(self.startLetter)], \
-							self.atom_list[self.letters.index(self.endLetter)])
-							self.triple_bond_list.append(bond)
-						#add to graph
-						self.graph.add_bond_via_bond_obj(bond)
-						#self.graph
-						print(self.graph)
+							tB = []
+							tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=20, fill="black", tags="bond"))
+							tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="white", tags="bond"))
+							tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="black", tags="bond"))
+							self.tripleBonds.append(tB)
 
-					except:
-						print("Invalid Bonding")
-						AddLine = False
-
-				# draw line                                                                                                             
-				if AddLine:
+					#add lines to letterBondings so we know the objects are supposed to be connected
+					#letterBondings:  lineIDs  |   anchor type flags   |   anchors (either a letter or a point, we know the difference from the flag)
 					if self.bond_type == 1:
-						sB = []
-						sB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, tags="bond"))
-						self.singleBonds.append(sB)
+						if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
+							# self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTwithEND", self.endLetter))
+							# self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDwithSTART", self.startLetter))    
+
+							self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1],  self.endLetter))
+							self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], self.startLetter))    
+						# elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
+						# 	self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTnoEND", endPoint))
+						# elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
+						# 	self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDnoSTART", startPoint))
+
 					elif self.bond_type == 2:
-						dB = []
-						dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="black", tags="bond"))
-						dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="white", tags="bond"))
-						self.doubleBonds.append(dB)
+						if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
+							# self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTwithEND", self.endLetter))
+							# self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDwithSTART", self.startLetter))  
+
+							self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1],  self.endLetter))
+							self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], self.startLetter))    
+						# elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
+						# 	self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTnoEND", endPoint))
+						# elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
+						# 	self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDnoSTART", startPoint))
+
 					elif self.bond_type == 3:
-						tB = []
-						tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=20, fill="black", tags="bond"))
-						tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="white", tags="bond"))
-						tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="black", tags="bond"))
-						self.tripleBonds.append(tB)
+						if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
+							# self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTwithEND", self.endLetter))
+							# self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDwithSTART", self.startLetter))    
 
-				#add lines to letterBondings so we know the objects are supposed to be connected
-				#letterBondings:  lineIDs  |   anchor type flags   |   anchors (either a letter or a point, we know the difference from the flag)
-				if self.bond_type == 1:
-					if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
-						self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTwithEND", self.endLetter))
-						self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDwithSTART", self.startLetter))    
-					elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
-						self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTnoEND", endPoint))
-					elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
-						self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDnoSTART", startPoint))
-
-				elif self.bond_type == 2:
-					if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
-						self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTwithEND", self.endLetter))
-						self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDwithSTART", self.startLetter))    
-					elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
-						self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTnoEND", endPoint))
-					elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
-						self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDnoSTART", startPoint))
-
-				elif self.bond_type == 3:
-					if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
-						self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTwithEND", self.endLetter))
-						self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDwithSTART", self.startLetter))    
-					elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
-						self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTnoEND", endPoint))
-					elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
-						self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDnoSTART", startPoint))
+							self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.endLetter))
+							self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.startLetter))  
+						# elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
+						# 	self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTnoEND", endPoint))
+						# elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
+						# 	self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDnoSTART", startPoint))
 
 				self.startLetter = -1
 				self.endLetter = -1
@@ -578,5 +621,20 @@ class Gui_Edit_Molecule():
 				
 				self.start = None
 				self.end = None
-		
 
+				pp = pprint.PrettyPrinter()
+				print('structure of letterBondings:\n')
+				for index, value in enumerate(self.letterBondings):
+					print('index[', str(index), ']:', str(value))
+				
+				print('structure of single bond group')
+				for index, value in enumerate(self.singleBonds):
+					print('index[', str(index), ']: ', str(self.singleBonds[index]))
+
+				print('structure of double bond group')
+				for index, value in enumerate(self.doubleBonds):
+					print('index[', str(index), ']: ', str(self.doubleBonds[index]))
+				print('structure of each bond group')
+				for index, value in enumerate(self.tripleBonds):
+					print('index[', str(index), ']: ', str(self.tripleBonds[index]))
+		
