@@ -652,6 +652,9 @@ class Gui_Edit_Molecule():
 
 					# draw line                                                                                                             
 					if AddLine:
+						# remove (possible) error messaages that are present
+						self.Comment_Field.delete(0, "end")
+						
 						if self.bond_type == 1:
 							sB = []
 							sB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, tags="bond"))
@@ -715,6 +718,9 @@ class Gui_Edit_Molecule():
 				self.start = None
 				self.end = None
 
+
+
+
 				print('structure of letterBondings:\n')
 				for index, value in enumerate(self.letterBondings):
 					print('index[', str(index), ']:', str(value))
@@ -729,5 +735,6 @@ class Gui_Edit_Molecule():
 				print('structure of each bond group')
 				for index, value in enumerate(self.tripleBonds):
 					print('index[', str(index), ']: ', str(self.tripleBonds[index]))
+				
 		self.enable_buttons()
-		self.Comment_Field.delete(0, "end")
+		
