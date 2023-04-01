@@ -814,14 +814,7 @@ class Gui_Edit_Molecule():
 						if self.startLetter != self.endLetter:
 							# don't allow the bond to be created if a bond already exists
 							for j in range(len(self.letterBondings[self.letters.index(self.startLetter)])):
-								# if \
-								# 	self.letterBondings[self.letters.index(self.startLetter)][j][1] == "STARTwithEND" and \
-								# 	self.letterBondings[self.letters.index(self.startLetter)][j][2] == self.endLetter:
-								# 	AddLine = False
-
-								if \
-									self.letterBondings[self.letters.index(self.startLetter)][j][1] == self.endLetter:
-									
+								if self.letterBondings[self.letters.index(self.startLetter)][j][1] == self.endLetter:
 									AddLine = False
 
 						# Prevent self bonding
@@ -833,8 +826,6 @@ class Gui_Edit_Molecule():
 						#form bonds
 						try:
 							if self.bond_type == 1:
-								#print(self.atom_list[self.letters.index(self.startLetter)])
-								#print(self.atom_list[self.letters.index(self.endLetter)])
 								bond = SingleBond(self.atom_list[self.letters.index(self.startLetter)], \
 								self.atom_list[self.letters.index(self.endLetter)])
 								self.single_bond_list.append(bond)
@@ -846,10 +837,9 @@ class Gui_Edit_Molecule():
 								bond = TripleBond(self.atom_list[self.letters.index(self.startLetter)], \
 								self.atom_list[self.letters.index(self.endLetter)])
 								self.triple_bond_list.append(bond)
+
 							#add to graph
 							self.graph.add_bond_via_bond_obj(bond)
-							#self.graph
-							print(self.graph)
 
 						except NameError as err:
 							print(err)
@@ -879,40 +869,18 @@ class Gui_Edit_Molecule():
 					#add lines to letterBondings so we know the objects are supposed to be connected
 					#letterBondings:  lineIDs  |   anchor type flags   |   anchors (either a letter or a point, we know the difference from the flag)
 					if self.bond_type == 1:
-						if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
-							# self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTwithEND", self.endLetter))
-							# self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDwithSTART", self.startLetter))    
-
+						if self.startLetter != -1 and self.endLetter != -1 and AddLine:
 							self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1],  self.endLetter))
-							self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], self.startLetter))    
-						# elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
-						# 	self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "STARTnoEND", endPoint))
-						# elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
-						# 	self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], "ENDnoSTART", startPoint))
-
+							self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], self.startLetter))
 					elif self.bond_type == 2:
-						if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
-							# self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTwithEND", self.endLetter))
-							# self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDwithSTART", self.startLetter))  
-
+						if self.startLetter != -1 and self.endLetter != -1 and AddLine:
 							self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1],  self.endLetter))
 							self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], self.startLetter))    
-						# elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
-						# 	self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "STARTnoEND", endPoint))
-						# elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
-						# 	self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], "ENDnoSTART", startPoint))
 
 					elif self.bond_type == 3:
-						if self.startLetter != -1 and self.endLetter != -1 and AddLine:     #start and end attached to letters
-							# self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTwithEND", self.endLetter))
-							# self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDwithSTART", self.startLetter))    
-
+						if self.startLetter != -1 and self.endLetter != -1 and AddLine:
 							self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.endLetter))
 							self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.startLetter))  
-						# elif self.startLetter != -1 and self.endLetter == -1 and AddLine:   #only start attached to a letter
-						# 	self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "STARTnoEND", endPoint))
-						# elif self.startLetter == -1 and self.endLetter != -1 and AddLine:   #only end attached to a letter
-						# 	self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1], "ENDnoSTART", startPoint))
 
 				self.startLetter = -1
 				self.endLetter = -1

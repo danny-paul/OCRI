@@ -12,8 +12,6 @@ class Graph:
 		self.graph = defaultdict(set)
 		self.mapped_address = dict()
 		self.mapped_address_counts = dict()
-		self.list_of_atoms = []
-		self.list_of_bonds = []
 		if (len(bonds) > 0):
 			self.add_bonds_via_bond_list(bonds)
 
@@ -29,15 +27,6 @@ class Graph:
 		# bond class did checking for validity, so just add to graph
 		self.graph[atom_one].add((atom_two, bond))  
 		self.graph[atom_two].add((atom_one, bond))
-
-		#add atoms to the atom list
-		if atom_one not in self.list_of_atoms:
-			self.list_of_atoms.append(atom_one)
-		if atom_two not in self.list_of_atoms:
-			self.list_of_atoms.append(atom_two)
-		#add bond to the bond list
-		if bond not in self.list_of_bonds:
-			self.list_of_bonds.append(bond)
 
 		#add to mapping
 		self.add_mapped_address(atom_one)
@@ -57,9 +46,6 @@ class Graph:
 		
 		# remove bond mapping
 		self.remove_mapped_address(bond_to_remove)
-
-		# remove from bond list
-		self.list_of_bonds.remove(bond_to_remove)
 
 		# remove bond from graph
 		for atom in atoms_in_bond:
@@ -85,15 +71,10 @@ class Graph:
 		# default dict does not raise key error, we only want to add atom if it DNE in graph
 		exists_in_graph: bool = self.does_atom_exist_in_graph(atom)
 
-		#add atom to atom list
-		if atom not in self.list_of_atoms:
-			self.list_of_atoms.append(atom)
-
 		if not exists_in_graph:
 			self.graph[atom] = set()
 			self.add_mapped_address(atom)
 		else:
-			# print('add_node_via_atom_obj-->Atom already exists in graph, Atom: ' + str(atom))
 			None
 
 	# checks mapped address dict to determine if present since self.graph = defaultdict(set) prevents checking by keyerror
@@ -104,10 +85,8 @@ class Graph:
 		try:
 			self.mapped_address[hex_address]
 			exists = True
-			# print('does_atom_exist_in_graph-->Atom exists in graph as checked by the mapped dict object, Atom: ' + str(atom))
 		except KeyError:
 			exists = False
-			# print('does_atom_exist_in_graph-->Atom DNE in graph as checked by the mapped dict object, Atom: ' + str(atom))
 
 		return exists
 
@@ -121,7 +100,6 @@ class Graph:
 			bond = atom_bond_tuple[1]
 			bonds_to_atom.append(bond)
 				
-		# print(bonds_to_atom)
 		self.remove_bonds_via_bond_list(bonds_to_atom)
 
 	# destructive, removes bonds to atoms and deletes atoms from the graph
@@ -138,15 +116,24 @@ class Graph:
 		# remove atom
 		self.remove_mapped_address(atom)
 		self.graph.pop(atom)
-		self.list_of_atoms.remove(atom)
 
 	#get a list of every atom
 	def get_atom_list(self):
-		return self.list_of_atoms
+		return self.graph.keys()
 	
 	#get a list of every bond
 	def get_bond_list(self):
-		return self.list_of_bonds
+		# iterate through keys of graph
+		# check if bond is in new dictionary - try/except
+		# if not, add
+		# else, skip
+
+		bond_set = set()
+		for atom_bond_tuple_set in self.graph.values():
+			for index, atom_bond_tuple in enumerate(atom_bond_tuple_set):
+				bond_set.add(atom_bond_tuple[1])
+
+		return list(bond_set)
 
 	# Associates the instance of a Atom or Bond with its common name.
 	# Eg: 0x443 may be a carbon atom, but this maps it to an easily identifiable english name such as Carbon 1.
@@ -177,9 +164,6 @@ class Graph:
 			entity_type_is_mapped = True
 		except KeyError:
 			entity_type_is_mapped = False
-		
-		# print('entity_is_mapped:' + str(entity_is_mapped))
-		# print('entity_type_is_mapped:' + str(entity_type_is_mapped))
 
 		if not entity_type_is_mapped:
 			# initialize count dictionary
@@ -189,13 +173,9 @@ class Graph:
 			count = self.mapped_address_counts[type_is]
 			count += 1
 			self.mapped_address_counts[type_is] = count
-			# print('Atom type:' + str(type_is) + ' count is:' + str(count))
 
 			# map atom address to the correct atom type number
 			self.mapped_address[str(hex(id(entity)))] = type_is + ' ' + str(count)
-		# pretty_print = pprint.PrettyPrinter()
-		# pretty_print.pprint(self.mapped_address)
-		# pretty_print.pprint(self.mapped_address_counts)
 
 	def remove_mapped_address(self, entity):
 		address = hex(id(entity))
@@ -260,10 +240,8 @@ class Graph:
 				tuple_bond_name = self.mapped_address[str(hex(id(tuple_of_atom_bond[1])))]
 
 				if index == len(self.graph[atom_as_key]) - 1:
-					# tempStr = tempStr + "\t\t" + tuple_atom_name + '\t' + tuple_atom_info + " " + tuple_bond_name + " " + tuple_bond_info 
 					tempStr = tempStr + "\t\t" + tuple_atom_name + '\t' + tuple_atom_info + "\t" + tuple_bond_name
 				else:
-					# tempStr = tempStr + "\t\t" + tuple_atom_name + '\t' + tuple_atom_info + " " + tuple_bond_name + " " + tuple_bond_info + ",\n"
 					tempStr = tempStr + "\t\t" + tuple_atom_name + '\t' + tuple_atom_info + "\t" + tuple_bond_name + ",\n"
 			
 			tempStr += "\n}\n\n"
