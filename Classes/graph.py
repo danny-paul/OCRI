@@ -12,6 +12,8 @@ class Graph:
 		self.graph = defaultdict(set)
 		self.mapped_address = dict()
 		self.mapped_address_counts = dict()
+		self.list_of_atoms = []
+		self.list_of_bonds = []
 		if (len(bonds) > 0):
 			self.add_bonds_via_bond_list(bonds)
 
@@ -27,6 +29,15 @@ class Graph:
 		# bond class did checking for validity, so just add to graph
 		self.graph[atom_one].add((atom_two, bond))  
 		self.graph[atom_two].add((atom_one, bond))
+
+		#add atoms to the atom list
+		if atom_one not in self.list_of_atoms:
+			self.list_of_atoms.append(atom_one)
+		if atom_two not in self.list_of_atoms:
+			self.list_of_atoms.append(atom_two)
+		#add bond to the bond list
+		if bond not in self.list_of_bonds:
+			self.list_of_bonds.append(bond)
 
 		#add to mapping
 		self.add_mapped_address(atom_one)
@@ -46,6 +57,9 @@ class Graph:
 		
 		# remove bond mapping
 		self.remove_mapped_address(bond_to_remove)
+
+		# remove from bond list
+		self.list_of_bonds.remove(bond_to_remove)
 
 		# remove bond from graph
 		for atom in atoms_in_bond:
@@ -70,6 +84,10 @@ class Graph:
 	def add_node_via_atom_obj(self, atom: Atom):
 		# default dict does not raise key error, we only want to add atom if it DNE in graph
 		exists_in_graph: bool = self.does_atom_exist_in_graph(atom)
+
+		#add atom to atom list
+		if atom not in self.list_of_atoms:
+			self.list_of_atoms.append(atom)
 
 		if not exists_in_graph:
 			self.graph[atom] = set()
@@ -120,6 +138,15 @@ class Graph:
 		# remove atom
 		self.remove_mapped_address(atom)
 		self.graph.pop(atom)
+		self.list_of_atoms.remove(atom)
+
+	#get a list of every atom
+	def get_atom_list(self):
+		return self.list_of_atoms
+	
+	#get a list of every bond
+	def get_bond_list(self):
+		return self.list_of_bonds
 
 	# Associates the instance of a Atom or Bond with its common name.
 	# Eg: 0x443 may be a carbon atom, but this maps it to an easily identifiable english name such as Carbon 1.

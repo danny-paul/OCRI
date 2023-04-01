@@ -141,9 +141,6 @@ class mapped_edge:
 
 	def __str__(self):
 		temp_str = '(' + str(self.x1) + ', ' + str(self.y1) + '), ' + '(' + str(self.x2) + ', ' + str(self.y2) + ') m=' + str(self.slope) + ' type:' + self.type_is
-		for index, node in enumerate(self.related_nodes):
-			temp_str += '\n\tNode ' + str(index) + ': ' + str(node)
-		
 		return temp_str
 			
 
@@ -174,6 +171,7 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 			# Node is single atom or polyatomic (treated as one atom)
 
 			atom_to_map = Atom(node.type_is)
+			atom_to_map.set_mapped_position((node.top_left_x+node.bottom_right_x)/2, (node.top_left_y+node.bottom_right_y)/2)
 			unbound_atoms.append(atom_to_map)
 			node_atom_dict[node] = atom_to_map # map node-->atom for bonding later
 		else:
@@ -185,6 +183,7 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 
 			# create main atom, remove from list, and connect to node
 			main_atom = Atom(main_atom_type)
+			main_atom.set_mapped_position((node.top_left_x+node.bottom_right_x)/2, (node.top_left_y+node.bottom_right_y)/2)
 			type_list.remove(main_atom_type)
 			node_atom_dict[node] = main_atom # will be the connecting atom of the partial structure to the overall molecule
 
@@ -198,7 +197,7 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 			# store partial structures to be combined later
 			partial_bonded_structures.append(connect_atoms_to_main(atoms_in_node, main_atom))
 
-			# main atom needs to connect to overall structuer
+			# main atom needs to connect to overall structure
 			unbound_atoms.append(main_atom)
 	
 	# connect edges to nodes (now represented as atoms)
@@ -218,13 +217,16 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 				elif edge.type_is == 'Double Bond':
 					bonds.append(DoubleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
 				elif edge.type_is == 'Triple Bond':
-					bonds.append(TripleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
+					try:
+						bonds.append(TripleBond(node_atom_dict[node_one], node_atom_dict[node_two]))
+					except:
+						pass
 			except KeyError:
-				print('Error: node was not present in the node_atom_dict. Bond not created. Edge: ', str(edge))
-			except NameError as err: 
-				print(err)
+				print('Ooops something went wrong, node was not present in the node_atom_dict. Bond not created. Edge: ', str(edge))
+			except:
+				pass
 		else:
-			print('Warning: Edge should have two related nodes. No bond formed. Edge: ', str(edge))
+			print('Err: edge should have two related nodes. Edge: ', str(edge))
 
 
 	# combine into one bond list
@@ -236,7 +238,7 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 	recognized_graph = Graph(bonds)
 	recognized_graph.add_nodes_via_atom_list(unbound_atoms)
 
-	return Graph(bonds)
+	return recognized_graph
 
 	
 def breakup_multi_atom_node(node: mapped_node)-> list[Atom]:
@@ -311,6 +313,9 @@ def connect_atoms_to_main(atoms_to_connect:list[Atom], main_atom: Atom)->list[Bo
 
 	# for now, bond everything to main. Should cover the majority of cases.
 	for atom in atoms_to_connect:
-		bond_list.append(SingleBond(main_atom, atom))
+		try:
+			bond_list.append(SingleBond(main_atom, atom))
+		except:
+			break
 
 	return bond_list

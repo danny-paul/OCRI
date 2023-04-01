@@ -24,11 +24,11 @@ from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
 CBLB = []
 
 #Primary recognition function
-def recognize():
-	crop1 = 150 #y1
-	crop2 = 500 # y2
-	crop3 = 100 #x1
-	crop4 = 310 #x2
+def recognize(cropX, cropY, cropX2, cropY2, imagePath):
+	crop1 = int(cropY)  #y1
+	crop2 = int(cropY2) #y2
+	crop3 = int(cropX)  #x1
+	crop4 = int(cropX2) #x2
 
 	#loads the model with the keras load_model function
 	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
@@ -36,11 +36,11 @@ def recognize():
 	model = load_model(model_path)
 	print("Done")
 	
-	image_filename = 'DanTest.jpg'
-	image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
+	#image_filename = 'DanTest.jpg'
+	#image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
 
 	#open image
-	image = Image.open(image_path + image_filename)
+	image = Image.open(imagePath)
 
 	#reduce contrast
 	enhancer = ImageEnhance.Contrast(image)
@@ -129,8 +129,8 @@ def recognize():
 	#define the list of label names
 	labelNames = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt"
 
-	image = cv2.imread(image_path + image_filename)
-	grayImage = cv2.imread(image_path + image_filename, 0)   #important for line segment detection
+	image = cv2.imread(imagePath)					  #keep first image for testing
+	grayImage = cv2.imread(imagePath, 0)			  #keep second image for line segment detection
 	cropped = image[crop1:crop2,crop3:crop4]
 	cropped2 = grayImage[crop1:crop2,crop3:crop4]     #cropped 2 will omit characters, to detect lines
 
@@ -167,7 +167,7 @@ def recognize():
 	#Detect lines in the image
 	lines = lsd.detect(NoChars)[0] #position 0 of the retuned tuple are the detected lines
 
-	# cv2.imshow("LSD input image", NoChars)
+	#cv2.imshow("LSD input image", NoChars)
 
 	#get rid of unnessessary lines
 	avgW, avgH = avgWH(letterBoxes)
@@ -188,8 +188,8 @@ def recognize():
 	# plt.axis('on')
 	# plt.show()
 
-	lines = minimize_extreme_edges_by_crop(crop3, crop1, crop4, crop2, lines) # x1, y1, x2, y2
-	mapped_node_arr, mapped_edge_arr, edge_list = mapEdges(letterBoxes, lines)
+	# lines = minimize_extreme_edges_by_crop(crop3, crop1, crop4, crop2, lines) # x1, y1, x2, y2
+	mapped_node_arr, mapped_edge_arr = mapEdges(letterBoxes, lines)
 
 	print(CBLB)
 	for i in range(len(CBLB)):
@@ -204,7 +204,7 @@ def recognize():
 	plt.axis('on')
 	plt.show()
 
-	return mapped_node_arr, mapped_edge_arr, edge_list
+	return mapped_node_arr, mapped_edge_arr
 
 												###### RECOGNITION FUNCTIONS ######
 
@@ -450,7 +450,7 @@ def mapEdges(letter_boxes, lines):
 			if line_one != line_two:
 				if line_one.contained_within_perimeter_midpoint(line_two.x_mid, line_two.y_mid):
 					line_one.related_edges.add(line_two)
-	
+
 	# remove edges that are unrelated (but in proximity) while maintaining edges that are part of the double/triple bond structure
 	for line in mapped_edge_arr:
 		line.minimize_bond_list_by_midpoint()
@@ -486,9 +486,9 @@ def mapEdges(letter_boxes, lines):
 				notMatched2 = False
 
 		if notMatched1:
-			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'c'))
+			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'C'))
 		if notMatched2:
-			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'c'))
+			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'C'))
 
 	# Initialize a 2d array full of 0's
 	edge_list = [['+']*len(mapped_node_arr) for i in range(len(lines))]
@@ -519,7 +519,7 @@ def mapEdges(letter_boxes, lines):
 		index_row += 1
 		index_col = 0
 
-	return mapped_node_arr, mapped_edge_arr, edge_list
+	return mapped_node_arr, mapped_edge_arr
 
 # get combine touching letterboxes to form polyatomic and multicharacter elements
 def combineBoxes(letterBoxes):

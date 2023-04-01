@@ -177,7 +177,7 @@ class DoubleBond(CovalentBond):
 
 class TripleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
-		super().__init__(atom_one, atom_two)
+		super().__init__(atom_one, atom_two, CONSTANT.TRIPLE_BOND_COST)
 		self.electron_cost = CONSTANT.TRIPLE_BOND_COST
 	
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:

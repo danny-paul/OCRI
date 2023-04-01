@@ -4,6 +4,8 @@ class Atom(object):
 	def __init__(self, atom_type: str, base_val_electrons: int = -1, shared_val_electrons: int = -1, full_electron_config: int = -1):
 		# will need to restrict type to a list of predefined values else raise error
 		self.atom_type = atom_type
+		self.mapped_x = None
+		self.mapped_y = None
 		
 		if Atom.is_atom(atom_type):
 			try:
@@ -81,6 +83,9 @@ class Atom(object):
 	def get_max_valence_electrons(self):
 		return self.full_electron_config
 	
+	def get_mapped_position(self):
+		return (self.mapped_x, self.mapped_y)
+	
 	# update the remaining valence electron count if valid
 	def set_shared_val_electrons(self, new_value: int):
 		success: bool
@@ -92,6 +97,10 @@ class Atom(object):
 			success = False
 
 		return success
+
+	def set_mapped_position(self, x, y):
+		self.mapped_x = x
+		self.mapped_y = y
 
 	def __str__(self):
 		tempStr = str(hex(id(self))) + " " + self.__class__.__name__ + " "

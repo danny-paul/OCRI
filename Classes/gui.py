@@ -3,6 +3,7 @@ import tkinter as tk
 import math
 from tkinter import NORMAL, Label, Toplevel, filedialog as fido
 from tkinter import ttk # duplicate
+from PIL import Image, ImageTk
 from Classes.graph import Graph
 from Classes.bonds import Bond
 from Classes.bonds import CovalentBond
@@ -12,6 +13,7 @@ from Classes.bonds import TripleBond
 from Classes.atom import Atom
 import Classes.constants as CONSTANT
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
+import Image_Recognition.Recognizer as Recognizer
 
 # main class for the GUI application
 class Gui_Edit_Molecule():
@@ -210,6 +212,9 @@ class Gui_Edit_Molecule():
 		self.start_x = event.x
 		self.start_y = event.y
 
+		self.cropX = event.x
+		self.cropY = event.y
+
 		# create rectangle if not yet exist
 		#if not self.rect:
 		self.rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline="black")
@@ -223,9 +228,27 @@ class Gui_Edit_Molecule():
 
 	# once released unbind the mouse events for drawing a rectangle
 	def on_button_release(self, event):
+		self.cropX2 = event.x
+		self.cropY2 = event.y
 		self.canvas.unbind("<ButtonPress-1>")
 		self.canvas.unbind("<B1-Motion>")
 		self.canvas.unbind("<ButtonRelease-1>")
+
+		imageWidth, imageHeight = self.PILimage.size
+		xMargin = self.canvas.winfo_width()/2 - imageWidth/2
+		yMargin = self.canvas.winfo_height()/2 - imageHeight/2
+		self.cropX = self.cropX - xMargin
+		self.cropY = self.cropY - yMargin
+		self.cropX2 = self.cropX2 - xMargin
+		self.cropY2 = self.cropY2 - yMargin
+
+		mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
+		print(mapped_node_arr)
+		self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
+		print(self.graph)
+		self.canvas.delete("all")
+		self.place_atoms_into_canvas()
+
 
 	def activate_delete(self):
 		self.is_delete_active = True
@@ -354,16 +377,28 @@ class Gui_Edit_Molecule():
 	# Function for opening the file browser
 	def fileb_exe(self):
 		self.canvas.delete("all")
-		image_name = fido.askopenfilename(title = "Pick your image")
-		print(image_name)
-		if image_name:
-			self.image = tk.PhotoImage(file = image_name)
-			self.canvas.create_image((0, 0), image = self.image, anchor = tk.NW)
+		self.image_name = fido.askopenfilename(title = "Pick your image")
+		print(self.image_name)
+		if self.image_name:
+			self.PILimage = Image.open(self.image_name)
+			
+			#resize image to fit in canvas
+			imageWidth, imageHeight = self.PILimage.size
+			imageProportion = imageWidth/imageHeight
+			if imageHeight > self.canvas.winfo_height():
+				imageHeight = self.canvas.winfo_height()
+				imageWidth = imageHeight * imageWidth
+			if imageWidth > self.canvas.winfo_width():
+				imageWidth = self.canvas.winfo_width()
+				imageHeight = imageWidth / imageProportion
+			self.PILimage.resize((int(imageWidth), int(imageHeight)))
+
+			self.image = ImageTk.PhotoImage(self.PILimage)		#convert to tkinter image
+			self.canvas.create_image((self.canvas.winfo_width()/2, self.canvas.winfo_height()/2), image = self.image, anchor = tk.CENTER)
 			#self.canvas.create_image((root.winfo_screenheight(),root.winfo_screenmmwidth()), image = self.image, anchor = tk.NW)
 		
 		# Creates popup window
 		self.crop_popup()
-
 
 	# functions to disable/enable buttons
 	
@@ -395,6 +430,176 @@ class Gui_Edit_Molecule():
 		self.btn_clear.configure(state = tk.NORMAL)
 		self.btn_import_file.configure(state = tk.NORMAL)
 		self.btn_photo.configure(state = tk.NORMAL)
+
+	#https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+	#efficient line segment intersect function
+	def ccw(self, A, B, C):
+		return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
+
+	# returns true if line segments AB and CD intersect
+	def linesIntersect(self, A, B, C, D):
+		return self.ccw(A,C,D) != self.ccw(B,C,D) and self.ccw(A,B,C) != self.ccw(A,B,D)
+
+
+	def place_atoms_into_canvas(self):
+		listOfAtoms = self.graph.get_atom_list()
+		listOfBonds = self.graph.get_bond_list()
+
+		#get canvas dimensions
+		canvasWidth = self.canvas.winfo_width()
+		canvasHeight = self.canvas.winfo_height()
+		left = .1*canvasWidth
+		right = canvasWidth - .1*canvasWidth
+		top = .1*canvasHeight
+		bottom = canvasHeight - .1*canvasHeight
+		width = right - left
+		height = bottom - top
+
+		#calculate positional conversion rates
+		convertWidth = width/(self.cropX2 - self.cropX)
+		convertHeight = height/(self.cropY2 - self.cropY)
+
+		# place atoms with a position
+		for atom in listOfAtoms:
+			atomX, atomY = atom.get_mapped_position()
+			if atomX is not None and atomY is not None:
+				print(atomX, atomY)
+				print(atom.get_type())
+				atomX = atomX * convertWidth
+				atomY = atomY * convertHeight
+				self.textbox = self.canvas.create_text(int(atomX), int(atomY), text=atom.get_type(), font=("Arial", 20), tags="letter")
+				self.letters.append(self.textbox)
+				self.atom_list.append(atom)
+				self.letterBondings.append([])
+
+		#get the atoms without positions (the atoms in the multiatom groups)
+		for atom in listOfAtoms:
+			connectedToAtom = self.graph.get_bonds_to_atom(atom)
+			for bond in connectedToAtom:
+				atom1, atom2 = bond.get_atoms()
+				atom3 = atom1		#atom 3 is the atom connected to the current atom
+				atom4 = atom2		#atom 4 is the atom with a mapped position
+				if atom == atom2:
+					atom3 = atom2
+					atom4 = atom1
+				atomX, atomY = atom3.get_mapped_position()
+				# if the atom cooridnates is none, then we have to place it
+				if atomX is None and atomY is None:
+					atomX, atomY = atom4.get_mapped_position()
+					atomX = atomX * convertWidth
+					atomY = atomY * convertHeight
+
+					# find a place to put the letter
+					fits = False
+					angle = math.pi/2
+					i = 0
+					while not fits:
+						fits = True
+						positionX = 60*math.cos(angle) + atomX
+						positionY = 60*math.cos(angle) + atomY
+						#check if new position intersects another letter
+						for letter in self.letters:
+							letterX, letterY = self.canvas.coords(letter)
+							tl1 = (positionX - 10, positionY - 10)
+							br1 = (positionX + 10, positionY + 10)
+							tl2 = (letterX - 10, letterY - 10)
+							br2 = (letterX + 10, letterY + 10)
+							#we can reuse the rectange intersect function from Recognizer.py
+							if(Recognizer.intersects(tl1, br1, tl2, br2)):
+								fits = False
+						#check if new position intersects with a line
+						allBonds = self.singleBonds + self.doubleBonds + self.tripleBonds
+						for line in allBonds:
+							x1, y1, x2, y2 = self.canvas.coords(line[0])
+							if self.linesIntersect((x1, y1), (x2, y2), (positionX - 20, positionY - 20), (positionX + 20), positionY - 20):
+								fits = False	#top
+							elif self.linesIntersect((x1, y1), (x2, y2), (positionX - 20, positionY - 20), (positionX - 20), positionY + 20):
+								fits = False	#left
+							elif self.linesIntersect((x1, y1), (x2, y2), (positionX - 20, positionY + 20), (positionX + 20), positionY + 20):
+								fits = False	#bottom
+							elif self.linesIntersect((x1, y1), (x2, y2), (positionX + 20, positionY - 20), (positionX + 20), positionY + 20):
+								fits = False	#right
+						#check if new position is outside the canvas
+						if positionX < 10 or positionY < 10 or positionX > canvasWidth + 10 or positionY > canvasHeight + 10:
+							fits = False
+
+						# if the letter isn't touching anything, add it to the canvas
+						if fits:
+							self.textbox = self.canvas.create_text(int(positionX), int(positionY), text=atom3.get_type(), font=("Arial", 20), tags="letter")
+							self.letters.append(self.textbox)
+							self.atom_list.append(atom3)
+							self.letterBondings.append([])
+						else:
+							angle = angle + 3*math.pi/4		#try another spot
+							i = i + 1
+							#if no spots available, print in spot where it doesn't fit, but not off of the canvas
+							if i > 8 and positionX > 10 and positionY > 10 and positionX < canvasWidth + 10 and positionY < canvasHeight + 10:
+								fits = True
+								self.textbox = self.canvas.create_text(int(positionX), int(positionY), text=atom3.get_type(), font=("Arial", 20), tags="letter")
+								self.letters.append(self.textbox)
+								self.atom_list.append(atom3)
+								self.letterBondings.append([])
+		
+		# print the bonds of the atoms to the canvas
+		for atom in listOfAtoms:
+			bondsToAtom = self.graph.get_bonds_to_atom(atom)
+			for bond in bondsToAtom:
+				atom1, atom2 = bond.get_atoms()
+				letter1 = self.letters[self.atom_list.index(atom1)]		#get letters associated with bond
+				letter2 = self.letters[self.atom_list.index(atom2)]
+
+				#get cooridnates of associated letters
+				start_x, start_y = self.canvas.coords(letter1)
+				end_x, end_y = self.canvas.coords(letter2)
+
+				#calculate line points
+				if start_x - end_x != 0:
+					angle = math.atan((start_y - end_y)/(start_x - end_x))
+				elif start_y >= end_y:
+					angle = math.pi/2
+				elif start_y < end_y:
+					angle = -math.pi/2
+
+				if start_x >= end_x:
+					start_x = start_x - 20*math.cos(angle)
+					end_x = end_x + 20*math.cos(angle)
+					start_y = start_y - 20*math.sin(angle)
+					end_y = end_y + 20*math.sin(angle)
+				else:
+					start_x = start_x + 20*math.cos(angle)
+					end_x = end_x - 20*math.cos(angle)
+					start_y = start_y + 20*math.sin(angle)
+					end_y = end_y - 20*math.sin(angle)
+
+				lineStart = (start_x, start_y)
+				lineEnd = (end_x, end_y)
+
+				#draw bond and add data to class-lists
+				bondType = bond.get_electron_bond_cost()
+				if bondType == 1:
+					sB = []
+					sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
+					self.singleBonds.append(sB)
+					self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
+				elif bondType == 2:
+					dB = []
+					dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
+					dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
+					self.doubleBonds.append(dB)
+					self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
+				elif bondType == 3:
+					tB = []
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=20, fill="black", tags="bond"))
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
+					self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
+					self.tripleBonds.append(tB)
+
+
+				
 		
 ######################################################   DELETE BUTTON  #####################################################
 
