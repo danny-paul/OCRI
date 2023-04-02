@@ -30,6 +30,12 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	crop3 = int(cropX)  #x1
 	crop4 = int(cropX2) #x2
 
+	#don't allow low crops, messes things up. High crops are fine though.
+	if crop1 < 0:
+		crop1 = 0
+	if crop3 < 0:
+		crop3 = 0
+
 	#loads the model with the keras load_model function
 	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
 	print("Loading NN model...")

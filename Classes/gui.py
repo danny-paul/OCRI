@@ -234,6 +234,7 @@ class Gui_Edit_Molecule():
 		self.canvas.unbind("<B1-Motion>")
 		self.canvas.unbind("<ButtonRelease-1>")
 
+		#calculate crop dimensions
 		imageWidth, imageHeight = self.PILimage.size
 		xMargin = self.canvas.winfo_width()/2 - imageWidth/2
 		yMargin = self.canvas.winfo_height()/2 - imageHeight/2
@@ -242,6 +243,27 @@ class Gui_Edit_Molecule():
 		self.cropX2 = self.cropX2 - xMargin
 		self.cropY2 = self.cropY2 - yMargin
 
+		#allow for any orientation of crop rectangle
+		if self.cropX > self.cropX2:
+			temp = self.cropX
+			self.cropX = self.cropX2
+			self.cropX2 = temp
+		if self.cropY > self.cropY2:
+			temp = self.cropY
+			self.cropY = self.cropY2
+			self.cropY2 = temp
+
+		#scale crop info
+		tempImage = Image.open(self.image_name)
+		tempImageWidth, tempImageHeight = tempImage.size
+		widthRatio = tempImageWidth / imageWidth
+		heightRatio = tempImageHeight / imageHeight
+		self.cropX = self.cropX * widthRatio
+		self.cropX2 = self.cropX2 * widthRatio
+		self.cropY = self.cropY * heightRatio
+		self.cropY2 = self.cropY2 * heightRatio
+
+		#send data to the recognizer
 		mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
 		print(mapped_node_arr)
 		self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
@@ -376,10 +398,10 @@ class Gui_Edit_Molecule():
 	
 	# Function for opening the file browser
 	def fileb_exe(self):
-		self.canvas.delete("all")
 		self.image_name = fido.askopenfilename(title = "Pick your image")
 		print(self.image_name)
 		if self.image_name:
+			self.canvas.delete("all")
 			self.PILimage = Image.open(self.image_name)
 			
 			#resize image to fit in canvas
@@ -387,18 +409,18 @@ class Gui_Edit_Molecule():
 			imageProportion = imageWidth/imageHeight
 			if imageHeight > self.canvas.winfo_height():
 				imageHeight = self.canvas.winfo_height()
-				imageWidth = imageHeight * imageWidth
+				imageWidth = imageHeight * imageProportion
 			if imageWidth > self.canvas.winfo_width():
 				imageWidth = self.canvas.winfo_width()
 				imageHeight = imageWidth / imageProportion
-			self.PILimage.resize((int(imageWidth), int(imageHeight)))
+			self.PILimage = self.PILimage.resize((int(imageWidth), int(imageHeight)))
 
 			self.image = ImageTk.PhotoImage(self.PILimage)		#convert to tkinter image
 			self.canvas.create_image((self.canvas.winfo_width()/2, self.canvas.winfo_height()/2), image = self.image, anchor = tk.CENTER)
 			#self.canvas.create_image((root.winfo_screenheight(),root.winfo_screenmmwidth()), image = self.image, anchor = tk.NW)
 		
-		# Creates popup window
-		self.crop_popup()
+			# Creates popup window
+			self.crop_popup()
 
 	# functions to disable/enable buttons
 	
@@ -597,6 +619,11 @@ class Gui_Edit_Molecule():
 					self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
 					self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
 					self.tripleBonds.append(tB)
+
+		#rebind mouse to move letters
+		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
+		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
+		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
 
 
 				
