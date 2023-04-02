@@ -940,64 +940,69 @@ class Gui_Edit_Molecule():
 							self.Comment_Field.delete(0, "end")
 							self.Comment_Field.insert(0, "Error: Cannot self bond")
 
-						#form bonds
+						# form bonds
 						try:
-							if self.bond_type == 1:
-								bond = SingleBond(self.atom_list[self.letters.index(self.startLetter)], \
-								self.atom_list[self.letters.index(self.endLetter)])
-								self.single_bond_list.append(bond)
-							elif self.bond_type == 2:
-								bond = DoubleBond(self.atom_list[self.letters.index(self.startLetter)], \
-								self.atom_list[self.letters.index(self.endLetter)])
-								self.double_bond_list.append(bond)
-							elif self.bond_type == 3:
-								bond = TripleBond(self.atom_list[self.letters.index(self.startLetter)], \
-								self.atom_list[self.letters.index(self.endLetter)])
-								self.triple_bond_list.append(bond)
+							if AddLine and self.startLetter != -1 and self.endLetter != -1:
+								# remove (possible) error messaages that are present
+								self.Comment_Field.delete(0, "end")
 
-							#add to graph
+								if self.bond_type == 1:
+
+									# create backend bond to represent
+									bond = SingleBond(self.atom_list[self.letters.index(self.startLetter)], \
+									self.atom_list[self.letters.index(self.endLetter)])
+									self.single_bond_list.append(bond)
+
+									# draw line  
+									sB = []
+									sB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, tags="bond"))
+									self.singleBonds.append(sB)
+
+									#add lines to letterBondings so we know the objects are supposed to be connected
+									self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1],  self.endLetter))
+									self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], self.startLetter))
+
+								elif self.bond_type == 2:
+
+									# create backend bond to represent
+									bond = DoubleBond(self.atom_list[self.letters.index(self.startLetter)], \
+									self.atom_list[self.letters.index(self.endLetter)])
+									self.double_bond_list.append(bond)
+
+									# draw line  
+									dB = []
+									dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="black", tags="bond"))
+									dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="white", tags="bond"))
+									self.doubleBonds.append(dB)
+
+									#add lines to letterBondings so we know the objects are supposed to be connected
+									self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1],  self.endLetter))
+									self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], self.startLetter))    
+
+								elif self.bond_type == 3:
+
+									# create backend bond to represent
+									bond = TripleBond(self.atom_list[self.letters.index(self.startLetter)], \
+									self.atom_list[self.letters.index(self.endLetter)])
+									self.triple_bond_list.append(bond)
+
+									# draw line  
+									tB = []
+									tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=20, fill="black", tags="bond"))
+									tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="white", tags="bond"))
+									tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="black", tags="bond"))
+									self.tripleBonds.append(tB)
+
+									#add lines to letterBondings so we know the objects are supposed to be connected
+									self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.endLetter))
+									self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.startLetter))  
+
+							# add to graph
 							self.graph.add_bond_via_bond_obj(bond)
 
 						except NameError as err:
 							print(err)
 							AddLine = False
-
-					# draw line                                                                                                             
-					if AddLine:
-						# remove (possible) error messaages that are present
-						self.Comment_Field.delete(0, "end")
-						
-						if self.bond_type == 1:
-							sB = []
-							sB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, tags="bond"))
-							self.singleBonds.append(sB)
-						elif self.bond_type == 2:
-							dB = []
-							dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="black", tags="bond"))
-							dB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="white", tags="bond"))
-							self.doubleBonds.append(dB)
-						elif self.bond_type == 3:
-							tB = []
-							tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=20, fill="black", tags="bond"))
-							tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=12, fill="white", tags="bond"))
-							tB.append(self.canvas.create_line(self.lineStart, self.lineEnd, width=4, fill="black", tags="bond"))
-							self.tripleBonds.append(tB)
-
-					#add lines to letterBondings so we know the objects are supposed to be connected
-					#letterBondings:  lineIDs  |   anchor type flags   |   anchors (either a letter or a point, we know the difference from the flag)
-					if self.bond_type == 1:
-						if self.startLetter != -1 and self.endLetter != -1 and AddLine:
-							self.letterBondings[self.letters.index(self.startLetter)].append((self.singleBonds[len(self.singleBonds) - 1],  self.endLetter))
-							self.letterBondings[self.letters.index(self.endLetter)].append((self.singleBonds[len(self.singleBonds) - 1], self.startLetter))
-					elif self.bond_type == 2:
-						if self.startLetter != -1 and self.endLetter != -1 and AddLine:
-							self.letterBondings[self.letters.index(self.startLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1],  self.endLetter))
-							self.letterBondings[self.letters.index(self.endLetter)].append((self.doubleBonds[len(self.doubleBonds) - 1], self.startLetter))    
-
-					elif self.bond_type == 3:
-						if self.startLetter != -1 and self.endLetter != -1 and AddLine:
-							self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.endLetter))
-							self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.startLetter))  
 
 				self.startLetter = -1
 				self.endLetter = -1
@@ -1009,7 +1014,9 @@ class Gui_Edit_Molecule():
 				self.end = None
 
 
-
+				print('self.graph:\n')
+				print(self.graph)
+				print('\n')
 
 				print('structure of letterBondings:\n')
 				for index, value in enumerate(self.letterBondings):
