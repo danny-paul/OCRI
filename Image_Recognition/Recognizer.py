@@ -30,7 +30,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	crop3 = int(cropX)  #x1
 	crop4 = int(cropX2) #x2
 
-	#don't allow low crops, messes things up. High crops are fine though.
+	#don't allow low crops, messes things up. High crops are fine though
 	if crop1 < 0:
 		crop1 = 0
 	if crop3 < 0:
@@ -152,11 +152,29 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		label = labelNames[i]
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
-		if (prob >= .7) and (w > 10) and (h > 10) and (h/w < 5) and (w/h < 5):
+		if (prob >= .7) and (w > 5) and (h > 10) and (h/w < 5) and (w/h < 2):
 			#cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
-			cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
+			#cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
 			#cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 			letterBoxes.append((x, y, w, h, label))
+
+	#find median letterBox dimensions
+	areas = []
+	for letterBox in letterBoxes:
+		x, y, w, h, label = letterBox
+		areas.append(w*h)
+	areas.sort()
+	median = areas[math.floor(len(areas)/2)]
+
+	#filter out letterBoxes are much larger than the median
+	newLetterBoxes = []
+	for letterBox in letterBoxes:
+		x, y, w, h, label = letterBox
+		if w * h < 2.5*median:
+			newLetterBoxes.append(letterBox)
+			#put white rectangle over letter so it is ignored in line segment detection
+			cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
+	letterBoxes = newLetterBoxes
 
 	WithChars = cropped     #image with characters, used for printing
 	NoChars = cropped2      #image without characters, used for line segment detection
