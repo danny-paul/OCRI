@@ -541,6 +541,7 @@ class Gui_Edit_Molecule():
 						sB = []
 						sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
 						self.singleBonds.append(sB)
+						self.single_bond_list.append(bond)
 						self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
 						self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
 					elif bondType == 2:
@@ -548,6 +549,7 @@ class Gui_Edit_Molecule():
 						dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
 						dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
 						self.doubleBonds.append(dB)
+						self.double_bond_list.append(bond)
 						self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
 						self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
 					elif bondType == 3:
@@ -556,6 +558,7 @@ class Gui_Edit_Molecule():
 						tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
 						tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
 						self.tripleBonds.append(tB)
+						self.triple_bond_list.append(bond)
 						self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
 						self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
 
@@ -680,6 +683,7 @@ class Gui_Edit_Molecule():
 						sB = []
 						sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
 						self.singleBonds.append(sB)
+						self.single_bond_list.append(bond)
 						self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
 						self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
 					elif bondType == 2:
@@ -687,6 +691,7 @@ class Gui_Edit_Molecule():
 						dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
 						dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
 						self.doubleBonds.append(dB)
+						self.double_bond_list.append(bond)
 						self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
 						self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
 					elif bondType == 3:
@@ -695,6 +700,7 @@ class Gui_Edit_Molecule():
 						tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
 						tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
 						self.tripleBonds.append(tB)
+						self.triple_bond_list.append(bond)
 						self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
 						self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
 				
@@ -753,15 +759,15 @@ class Gui_Edit_Molecule():
 						self.canvas.delete(self.letterBondings[i][j][0][l])
 					#delete bonds from single, double, and triple bonds
 					if self.letterBondings[i][j][0] in self.singleBonds:
-						#self.graph.remove_bond_via_bond_obj(self.singleBonds.index(self.letterBondings[i][j][0]))
+						#self.graph.remove_bond_via_bond_obj(self.single_bond_list[self.singleBonds.index(self.letterBondings[i][j][0])])
 						self.single_bond_list.pop(self.singleBonds.index(self.letterBondings[i][j][0]))
 						self.singleBonds.remove(self.letterBondings[i][j][0])
 					elif self.letterBondings[i][j][0] in self.doubleBonds:
-						#self.graph.remove_bond_via_bond_obj(self.singleBonds.index(self.letterBondings[i][j][0]))
+						#self.graph.remove_bond_via_bond_obj(self.double_bond_list[self.doubleBonds.index(self.letterBondings[i][j][0])])
 						self.double_bond_list.pop(self.doubleBonds.index(self.letterBondings[i][j][0]))
 						self.doubleBonds.remove(self.letterBondings[i][j][0])
 					elif self.letterBondings[i][j][0] in self.tripleBonds:
-						#self.graph.remove_bond_via_bond_obj(self.singleBonds.index(self.letterBondings[i][j][0]))
+						#self.graph.remove_bond_via_bond_obj(self.triple_bond_list[self.tripleBonds.index(self.letterBondings[i][j][0])])
 						self.triple_bond_list.pop(self.tripleBonds.index(self.letterBondings[i][j][0]))
 						self.tripleBonds.remove(self.letterBondings[i][j][0])
 				#delete the items from the arrays
