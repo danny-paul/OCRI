@@ -37,10 +37,12 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		crop3 = 0
 
 	#loads the model with the keras load_model function
-	model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
-	print("Loading NN model...")
-	model = load_model(model_path)
-	print("Done")
+	#model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
+	#print("Loading NN model...")
+	#model = load_model(model_path)
+	#print("Done")
+	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'\\Image_Recognition\\model.tflite')
+	interpreter.allocate_tensors()
 	
 	#image_filename = 'DanTest.jpg'
 	#image_path = os.getcwd() + '\\Image_Recognition\\Images\\'
@@ -131,7 +133,21 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	boxes = [b[1] for b in chars]
 	chars = np.array([c[0] for c in chars], dtype="float32")
 	#OCR the characters using our handwriting recognition model
-	preds = model.predict(chars)
+	#preds = model.predict(chars)
+	
+	#apply tf lite interpreted model
+	input_details = interpreter.get_input_details()
+	output_details = interpreter.get_output_details()
+	print("INPUT: ", input_details)
+	print("OUTPUT: ", output_details)
+	preds = []
+	for char in chars:
+		expandedChar = np.expand_dims(char, axis=0)
+		interpreter.set_tensor(input_details[0]["index"], expandedChar)
+		interpreter.invoke()
+		preds.append(interpreter.get_tensor(output_details[0]["index"])[0])
+	
+
 	#define the list of label names
 	labelNames = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt"
 
@@ -152,7 +168,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		label = labelNames[i]
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
-		if (prob >= .7) and (w > 5) and (h > 10) and (h/w < 5) and (w/h < 2):
+		if (prob >= 0) and (w > 5) and (h > 10) and (h/w < 5) and (w/h < 2):
 			#cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			#cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
 			#cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
@@ -268,19 +284,19 @@ def modifyPreds(pred):
 	pred[9] = pred[9]           #9
 	pred[10] = pred[10]         #A
 	pred[11] = pred[11]         #B
-	pred[12] = pred[12]		   	#C  is common
+	pred[12] = pred[12]	+ .4   	#C  is common
 	pred[13] = 0                #D  not used
 	pred[14] = 0                #E  not used
 	pred[15] = pred[15]         #F
 	pred[16] = 0                #G  not used
-	pred[17] = pred[17]		   	#H  is common
+	pred[17] = pred[17]	+ .4   	#H  is common
 	pred[18] = 0                #I  not used
 	pred[19] = 0                #J  not used
 	pred[20] = pred[20]         #K
 	pred[21] = pred[21]         #L
 	pred[22] = pred[22]         #M
-	pred[23] = pred[23]		   	#N is common
-	pred[24] = pred[24]			#O is common
+	pred[23] = pred[23]	+ .4   	#N is common
+	pred[24] = pred[24]	+ .4	#O is common
 	pred[25] = pred[25]         #P
 	pred[26] = 0                #Q  not used
 	pred[27] = pred[27]         #R
@@ -305,13 +321,13 @@ def modifyPreds(pred):
 	pred[46] = pred[46]         #t
 
 	#these are the most common, so always allow them if they are the max value
-	if np.argmax(pred) == 12 and pred[12] > .10:
+	if np.argmax(pred) == 12 and pred[12] > .45:		#C
 		pred[12] = pred[12] + 1
-	elif np.argmax(pred) == 17 and pred[17] > .10:
+	elif np.argmax(pred) == 17 and pred[17] > .45:		#H
 		pred[17] = pred[17] + 1
-	elif np.argmax(pred) == 23 and pred[23] > .10:
+	elif np.argmax(pred) == 23 and pred[23] > .45:		#N
 		pred[23] = pred[23] + 1
-	elif np.argmax(pred) == 24 and pred[24] > .10:
+	elif np.argmax(pred) == 24 and pred[24] > .42:		#O
 		pred[24] = pred[24] + 1
 
 	return pred
