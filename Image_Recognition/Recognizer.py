@@ -179,17 +179,18 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		x, y, w, h, label = letterBox
 		areas.append(w*h)
 	areas.sort()
-	median = areas[math.floor(len(areas)/2)]
 
 	#filter out letterBoxes are much larger than the median
-	newLetterBoxes = []
-	for letterBox in letterBoxes:
-		x, y, w, h, label = letterBox
-		if w * h < 2.5*median:
-			newLetterBoxes.append(letterBox)
-			#put white rectangle over letter so it is ignored in line segment detection
-			cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
-	letterBoxes = newLetterBoxes
+	if len(areas) > 0:
+		median = areas[math.floor(len(areas)/2)]
+		newLetterBoxes = []
+		for letterBox in letterBoxes:
+			x, y, w, h, label = letterBox
+			if w * h < 2.5*median:
+				newLetterBoxes.append(letterBox)
+				#put white rectangle over letter so it is ignored in line segment detection
+				cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
+		letterBoxes = newLetterBoxes
 
 	WithChars = cropped     #image with characters, used for printing
 	NoChars = cropped2      #image without characters, used for line segment detection
@@ -401,8 +402,9 @@ def avgWH(letterBoxes):
 		WTotal = WTotal + W
 		HTotal = HTotal + H
 
-	WTotal = WTotal/len(letterBoxes)
-	HTotal = HTotal/len(letterBoxes)
+	if WTotal > 0 and HTotal > 0:
+		WTotal = WTotal/len(letterBoxes)
+		HTotal = HTotal/len(letterBoxes)
 
 	return WTotal, HTotal
 
@@ -418,7 +420,7 @@ def avgLineLength(lines):
 
 	totalDistance = totalDistance / len(lines)
 
-	return totalDistance   
+	return totalDistance
 
 #Check if two rectangles intersect
 # From https://www.geeksforgeeks.org/find-two-rectangles-overlap/
@@ -453,7 +455,8 @@ def mapEdges(letter_boxes, lines):
 	if len(letter_boxes) > 0:
 		avgW, avgH = avgWH(letter_boxes)
 	else:
-		avgW, avgH = avgLineLength(lines)/2
+		avgW = avgLineLength(lines)/2
+		avgH = avgW
 
 	# structures to organize line and node data
 	mapped_node_arr: list[mapped_node] = []
