@@ -1,5 +1,3 @@
-#from https://deepnote.com/@davidespalla/Recognizing-handwriting-with-Tensorflow-and-OpenCV-cfc4acf5-188e-4d3b-bdb5-a13aa463d2b0
-
 from keras.models import load_model
 from PIL import Image, ImageEnhance
 import tensorflow as tf
@@ -19,11 +17,13 @@ import pprint
 from collections import defaultdict
 
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
+import Classes.constants as CONSTANT
 
 #global for testing
 CBLB = []
 
 #Primary recognition function
+#used https://deepnote.com/@davidespalla/Recognizing-handwriting-with-Tensorflow-and-OpenCV-cfc4acf5-188e-4d3b-bdb5-a13aa463d2b0
 def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	crop1 = int(cropY)  #y1
 	crop2 = int(cropY2) #y2
@@ -41,7 +41,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#print("Loading NN model...")
 	#model = load_model(model_path)
 	#print("Done")
-	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'\\Image_Recognition\\model.tflite')
+	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter.allocate_tensors()
 	
 	#image_filename = 'DanTest.jpg'
@@ -68,9 +68,10 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 
 	#convert to pure black and white
 	blurred = pureBlackWhite(blurred)
+	blurredCopy = blurred.copy()
 
 	plt.imshow(blurred,cmap=cm.binary_r)
-	plt.show()      #testing, show images used for recognition
+	#plt.show()      #testing, show images used for recognition
 
 	#perform edge detection, find contours in the edge map, and sort the
 	#resulting contours from left-to-right
@@ -138,8 +139,6 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#apply tf lite interpreted model
 	input_details = interpreter.get_input_details()
 	output_details = interpreter.get_output_details()
-	print("INPUT: ", input_details)
-	print("OUTPUT: ", output_details)
 	preds = []
 	for char in chars:
 		expandedChar = np.expand_dims(char, axis=0)
@@ -151,8 +150,8 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#define the list of label names
 	labelNames = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt"
 
-	image = cv2.imread(imagePath)					  #keep first image for testing
-	grayImage = cv2.imread(imagePath, 0)			  #keep second image for line segment detection
+	image = cv2.imread(imagePath)	 				  #keep first image for testing
+	grayImage = cv2.imread(imagePath, 0)		 	  #keep second image for line segment detection
 	cropped = image[crop1:crop2,crop3:crop4]
 	cropped2 = grayImage[crop1:crop2,crop3:crop4]     #cropped 2 will omit characters, to detect lines
 
@@ -168,7 +167,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		label = labelNames[i]
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
-		if (prob >= 0) and (w > 5) and (h > 10) and (h/w < 5) and (w/h < 2):
+		if (prob >= 0) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.35):
 			#cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			#cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
 			#cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
@@ -195,8 +194,8 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	WithChars = cropped     #image with characters, used for printing
 	NoChars = cropped2      #image without characters, used for line segment detection
 
-	NoChars = cv2.GaussianBlur(NoChars, (5, 5), 0)
 	#NoChars = pureBlackWhite(NoChars)
+	#NoChars = cv2.GaussianBlur(NoChars, (5, 5), 0)
 
 	#line segment detection
 	#from https://stackoverflow.com/questions/41329665/linesegmentdetector-in-opencv-3-with-python
@@ -207,7 +206,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#Detect lines in the image
 	lines = lsd.detect(NoChars)[0] #position 0 of the retuned tuple are the detected lines
 
-	#cv2.imshow("LSD input image", NoChars)
+	cv2.imshow("LSD input image", NoChars)
 
 	#get rid of unnessessary lines
 	avgW, avgH = avgWH(letterBoxes)
@@ -273,7 +272,7 @@ def modifyPreds(pred):
 
 	#table of characters to modify
 	pred[0] = 0                 #0
-	pred[1] = pred[1]           #1
+	pred[1] = 0		            #1
 	pred[2] = pred[2]           #2
 	pred[3] = pred[3]           #3
 	pred[4] = pred[4]           #4
@@ -290,7 +289,7 @@ def modifyPreds(pred):
 	pred[15] = pred[15]         #F
 	pred[16] = 0                #G  not used
 	pred[17] = pred[17]	+ .4   	#H  is common
-	pred[18] = 0                #I  not used
+	pred[18] = pred[18]         #I  used as 'i' and 'l'
 	pred[19] = 0                #J  not used
 	pred[20] = pred[20]         #K
 	pred[21] = pred[21]         #L
@@ -476,7 +475,8 @@ def mapEdges(letter_boxes, lines):
 
 		combinedLetterBoxes.append((newBoundX, newBoundY, newBoundW, newBoundH, bound_letter))
 
-	combinedLetterBoxes = combineBoxes(combinedLetterBoxes)
+	combinedLetterBoxes = combineBoxes(combinedLetterBoxes)			#combine nearby letterboxes
+	combinedLetterBoxes = filterLetterBoxes(combinedLetterBoxes)	#make sure labels are acceptable atoms
 	global CBLB
 	CBLB = combinedLetterBoxes		#pass to global for testing
 
@@ -568,6 +568,10 @@ def combineBoxes(letterBoxes):
 	newLetterBoxes = []			#the new letter boxes, return value
 	grouped = set()
 
+	# get average width and height for later
+	avgWidth, avgHeight = avgWH(letterBoxes)
+	avgSize = avgWidth * avgHeight
+
 	boundBoxExpand = 0.75		#we are shrinking the bounding boxes because they are too big for this part,
 									#but fine for lines
 
@@ -601,11 +605,30 @@ def combineBoxes(letterBoxes):
 					W1 = W1 * boundBoxExpand
 					H1 = H1 * boundBoxExpand
 					
-					#if the character intersects and isn't i, add it to i's group
+					#if the character intersects and isn't i, make sure the new box will have appropriate dimensions
 					if j not in grouped and intersects((X1, Y1), (X1 + W1, Y1 + H1), (X2, Y2), (X2 + W2, Y2 + H2)):
-						newGroup.append(letterBoxes[j])
-						grouped.add(j)
-						j = i + 1			#restart loop
+						cX, cY, cW, cH, cL = letterBoxes[j]
+						calcX1 = [cX]
+						calcY1 = [cY]
+						calcX2 = [cX + cW]
+						calcY2 = [cY + cH]
+						for letterBox in newGroup:
+							x, y, w, h, l = letterBox
+							calcX1.append(x)
+							calcY1.append(y)
+							calcX2.append(x+w)
+							calcY2.append(y+h)
+						BX1 = min(calcX1)
+						BY1 = min(calcY1)
+						BX2 = max(calcX2)
+						BY2 = max(calcY2)
+						BWidth = BX2 - BX1
+						BHeight = BY2 - BY1
+						#if the box has appropriate dimensions, add it to the new group, otherwise skip it
+						if BWidth * BHeight < 5*avgSize and BHeight < 3*avgHeight:
+							newGroup.append(letterBoxes[j])
+							grouped.add(j)
+							j = i + 1			#restart loop
 
 			letterGroups.append(newGroup)
 
@@ -617,7 +640,7 @@ def combineBoxes(letterBoxes):
 		for j in range(len(letterGroups[i])):
 			for k in range(len(letterGroups[i])):
 				#compare x + y values
-				if letterGroups[i][j][0] + letterGroups[i][j][1]/10 < letterGroups[i][k][0] + letterGroups[i][k][1]/10:
+				if letterGroups[i][j][0] < letterGroups[i][k][0]:
 					temp = letterGroups[i][j]
 					letterGroups[i][j] = letterGroups[i][k]
 					letterGroups[i][k] = temp
@@ -643,6 +666,96 @@ def combineBoxes(letterBoxes):
 			newLetterBoxes.append((min(TLXs), min(TLYs), max(BRXs) - min(TLXs), max(BRYs) - min(TLYs), labelName))
 	
 
+	return newLetterBoxes
+
+#make sure the letterBoxes have acceptable characters
+def filterLetterBoxes(letterBoxes):
+	#this shouldn't affect polyatomics
+	acceptableCharacters = CONSTANT.ATOM_SYMBOL_TO_NAME_DICT.keys()
+
+	newLetterBoxes = []
+	for letterBox in letterBoxes:
+		x, y, w, h, label = letterBox
+		#get rid of leading numbers
+		startIndex = 0
+		for i in range(len(label)):
+			if label[i].isnumeric():
+				startIndex = i + 1
+			else:
+				break			#once we find a non-numeric character, leave loop
+		
+		label = label[startIndex:]		#no more leading numbers
+
+		#get rid of multi-digit numbers
+		newLabel = ""
+		startIndex = 0
+		for i in range(len(label)):
+			if i != 0:
+				if label[i - 1].isnumeric() and label[i].isnumeric():
+					pass		#don't add character to label
+				else:
+					newLabel += label[i]
+			else:
+				newLabel += label[i]
+		label = newLabel
+
+		#go through and change recognized characters to charcters in atoms
+		#we have to do this because some characters aren't recognized by the model
+		#they aren't recognized because they are too similiar to other characters
+		newLabel = ""
+		for i in range(len(label)):
+			if i != len(label) - 1:
+				if label[i] == 'L' and label[i + 1] == 'I':
+					newLabel += "L"
+					newLabel += "i"
+					i = i + 1
+				elif label[i] == 'A' and label[i + 1] == 'I':
+					newLabel += 'A'
+					newLabel += 'i'
+					i = i + 1
+				elif label[i] == 'S' and label[i + 1] == 'I':
+					newLabel += 'S'
+					newLabel += 'i'
+					i = i + 1
+				elif label[i] == 'C' and label[i + 1] == 'I':
+					newLabel += 'C'
+					newLabel += 'i'
+					i = i + 1
+				elif label[i] == 'A' and label[i + 1] == 'S':
+					newLabel += 'A'
+					newLabel += 's'
+					i = i + 1
+				elif label[i] == 'B' and label[i + 1] == 'I':
+					newLabel += 'B'
+					newLabel += 'i'
+					i = i + 1
+				else:
+					newLabel += label[i]
+			else:
+				newLabel += label[i]
+				break
+		label = newLabel
+
+		newLabel = ""
+		#only keep elements in the acceptable characters list
+		for i in range(len(label)):
+			#get 2 character pair
+			if i != len(label) - 1:
+				twoChar = label[i] + label[i + 1]
+			else:
+				twoChar = label[i]
+
+			if twoChar in acceptableCharacters:
+				newLabel += twoChar
+				i = i + 1
+			#if it isn't a two character element, check if its a 1 character element
+			elif label[i] in acceptableCharacters:
+				newLabel += label[i]
+			if i >= len(label):
+				break
+		label = newLabel
+		newLetterBoxes.append((x, y, w, h, label))
+	
 	return newLetterBoxes
 
 # get rid of unnessessary lines
