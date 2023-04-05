@@ -196,7 +196,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	NoChars = cropped2      #image without characters, used for line segment detection
 
 	#NoChars = pureBlackWhite(NoChars)
-	#NoChars = cv2.GaussianBlur(NoChars, (5, 5), 0)
+	NoChars = cv2.GaussianBlur(NoChars, (5, 5), 0)
 
 	#line segment detection
 	#from https://stackoverflow.com/questions/41329665/linesegmentdetector-in-opencv-3-with-python

@@ -317,6 +317,11 @@ class Gui_Edit_Molecule():
 			self.Comment_Field.insert(0, "Image Accepted")
 			self.btn_translate_image.configure(state = tk.NORMAL)
 			popup.destroy()
+			#set crop to maximum bounds
+			self.cropX = 0		#undercrop will be set to zero in the recognizer
+			self.cropY = 0
+			self.cropX2 = self.canvas.winfo_width()		#overcrop won't matter
+			self.cropY2 = self.canvas.winfo_height()
 
 		def crop():
 			self.Comment_Field.delete(0, "end")
