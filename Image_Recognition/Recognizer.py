@@ -463,8 +463,9 @@ def mapEdges(letter_boxes, lines):
 	mapped_edge_arr: list[mapped_edge] = []
 	for line in lines:
 		# exclude lines that are in negative x/y positions
-		if line[0] > 0 and line[1] > 0 and line[2] > 0 and line[3] > 0:
-			mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
+		# if line[0] > 0 and line[1] > 0 and line[2] > 0 and line[3] > 0:
+		# 	mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
+		mapped_edge_arr.append(mapped_edge(line[0], line[1], line[2], line[3], avgW, avgH))
 
 	bound_expand = 3.0    # multiplier for width and height
 

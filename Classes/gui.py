@@ -100,6 +100,11 @@ class Gui_Edit_Molecule():
 
 	#for select atom dropdown
 	def dropdown_select_option(self, option):
+		# clear if line was clicked
+		self.clear_line_creation()
+		self.Comment_Field.delete(0, "end")
+
+
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
 	
@@ -360,19 +365,7 @@ class Gui_Edit_Molecule():
 			warning.destroy()
 			self.enable_buttons()
 
-			# empty properties 
-			self.graph = Graph([])
-			self.letters = []			
-			self.atom_list = []			
-			self.letterBondings = []	
-										
-			
-			self.singleBonds = []		
-			self.doubleBonds = []		
-			self.tripleBonds = []		
-			self.single_bond_list = []	
-			self.double_bond_list = []	
-			self.triple_bond_list = []	
+			self.empty_properties()
 
 		def no():
 			warning.destroy()
@@ -402,6 +395,9 @@ class Gui_Edit_Molecule():
 			warning.destroy()
 			self.enable_buttons()
 			self.fileb_exe()
+
+			#empty properties when clearing
+			self.empty_properties()
 		def no():
 			warning.destroy()
 			self.enable_buttons()
@@ -888,14 +884,8 @@ class Gui_Edit_Molecule():
 					self.Comment_Field.delete(0, "end")
 					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over and select two atoms")
 
-					self.startLetter = -1
-					self.endLetter = -1
-					self.startConnected = False
-					self.endConnected = False
-					self.line_instance = 1
-					
-					self.start = None
-					self.end = None
+					# clear when second click occurs (regardless of success or failure)
+					self.clear_line_creation()
 				else:
 					# set start coordinates for bond
 					self.lineStart = (point_x, point_y)
@@ -1038,14 +1028,7 @@ class Gui_Edit_Molecule():
 							AddLine = False
 				
 				# clear when second click occurs (regardless of success or failure)
-				self.startLetter = -1
-				self.endLetter = -1
-				self.startConnected = False
-				self.endConnected = False
-				self.line_instance = 1
-				
-				self.start = None
-				self.end = None
+				self.clear_line_creation()
 
 
 				print('self.graph:\n')
@@ -1069,3 +1052,30 @@ class Gui_Edit_Molecule():
 				
 		self.enable_buttons()
 		
+	# resets line creation
+	def clear_line_creation(self):
+		# clear when second click occurs (regardless of success or failure)
+		self.startLetter = -1
+		self.endLetter = -1
+		self.startConnected = False
+		self.endConnected = False
+		self.line_instance = 1
+		
+		self.start = None
+		self.end = None
+
+		self.enable_buttons()
+	
+	def empty_properties(self):
+			# empty properties 
+			self.graph = Graph([])
+			self.letters = []			
+			self.atom_list = []			
+			self.letterBondings = []	
+										
+			self.singleBonds = []		
+			self.doubleBonds = []		
+			self.tripleBonds = []		
+			self.single_bond_list = []	
+			self.double_bond_list = []	
+			self.triple_bond_list = []	
