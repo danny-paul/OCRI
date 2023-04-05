@@ -209,6 +209,10 @@ class Gui_Edit_Molecule():
 	def on_button_press(self, event):
 		# save mouse drag start position
 
+		if self.rect is not None:
+			self.canvas.delete(self.rect)
+			self.rect = None
+
 		self.start_x = event.x
 		self.start_y = event.y
 
@@ -230,9 +234,6 @@ class Gui_Edit_Molecule():
 	def on_button_release(self, event):
 		self.cropX2 = event.x
 		self.cropY2 = event.y
-		self.canvas.unbind("<ButtonPress-1>")
-		self.canvas.unbind("<B1-Motion>")
-		self.canvas.unbind("<ButtonRelease-1>")
 
 
 	def activate_delete(self):
@@ -299,6 +300,9 @@ class Gui_Edit_Molecule():
 		print(mapped_node_arr)
 		self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
 		print(self.graph)
+		self.canvas.unbind("<ButtonPress-1>")
+		self.canvas.unbind("<B1-Motion>")
+		self.canvas.unbind("<ButtonRelease-1>")
 		self.translate_enable_buttons()
 		self.place_atoms_into_canvas()
 
@@ -332,10 +336,10 @@ class Gui_Edit_Molecule():
 		popup.title("Confirm")
 
 		button_accept = ttk.Button(popup, text = "Accept", command = accept)
-		button_accept.grid(row = 1, column = 1,)
+		button_accept.grid(row = 1, column = 2)
 
 		button_crop = ttk.Button(popup, text = "Crop", command = crop)
-		button_crop.grid(row = 1, column = 2)
+		button_crop.grid(row = 1, column = 1)
 
 		button_cancel = ttk.Button(popup, text = "Cancel", command = cancel)
 		button_cancel.grid(row = 1, column = 3)
@@ -420,24 +424,27 @@ class Gui_Edit_Molecule():
 			self.PILimage = Image.open(self.image_name)
 			
 			#resize image to fit in canvas
-			imageWidth, imageHeight = self.PILimage.size
-			imageProportion = imageWidth/imageHeight
-			if imageHeight > self.canvas.winfo_height():
-				imageHeight = self.canvas.winfo_height()
-				imageWidth = imageHeight * imageProportion
-			if imageWidth > self.canvas.winfo_width():
-				imageWidth = self.canvas.winfo_width()
-				imageHeight = imageWidth / imageProportion
-			self.PILimage = self.PILimage.resize((int(imageWidth), int(imageHeight)))
-
-			self.image = ImageTk.PhotoImage(self.PILimage)		#convert to tkinter image
-			self.canvas.create_image((self.canvas.winfo_width()/2, self.canvas.winfo_height()/2), image = self.image, anchor = tk.CENTER)
-			#self.canvas.create_image((root.winfo_screenheight(),root.winfo_screenmmwidth()), image = self.image, anchor = tk.NW)
+			self.showImage()
 		
 			# Creates popup window
 			self.crop_popup()
 
-	# functions to disable/enable buttons
+	#shows the image on the canvas, scales it down too
+	#assign self.PILimage to use
+	def showImage(self):
+		#resize image to fit in canvas
+		imageWidth, imageHeight = self.PILimage.size
+		imageProportion = imageWidth/imageHeight
+		if imageHeight > self.canvas.winfo_height():
+			imageHeight = self.canvas.winfo_height()
+			imageWidth = imageHeight * imageProportion
+		if imageWidth > self.canvas.winfo_width():
+			imageWidth = self.canvas.winfo_width()
+			imageHeight = imageWidth / imageProportion
+		self.PILimage = self.PILimage.resize((int(imageWidth), int(imageHeight)))
+
+		self.image = ImageTk.PhotoImage(self.PILimage)		#convert to tkinter image
+		self.canvas.create_image((self.canvas.winfo_width()/2, self.canvas.winfo_height()/2), image = self.image, anchor = tk.CENTER)
 	
 	# Specific for the translate_image being disabled after it translates the image
 	def translate_enable_buttons(self):
@@ -477,7 +484,7 @@ class Gui_Edit_Molecule():
 	def linesIntersect(self, A, B, C, D):
 		return self.ccw(A,C,D) != self.ccw(B,C,D) and self.ccw(A,B,C) != self.ccw(A,B,D)
 
-
+	# places atoms from the graph into the canvas, only use for recognized images
 	def place_atoms_into_canvas(self):
 		listOfAtoms = self.graph.get_atom_list()
 		listOfBonds = self.graph.get_bond_list()
@@ -514,68 +521,66 @@ class Gui_Edit_Molecule():
 				self.letterBondings.append([])
 		
 		# print the bonds of the atoms with positions to the canvas
-		for atom in listOfAtoms:
-			bondsToAtom = self.graph.get_bonds_to_atom(atom)
-			for bond in bondsToAtom:
-				atom1, atom2 = bond.get_atoms()
-				x1, y1 = atom1.get_mapped_position()
-				x2, y2 = atom2.get_mapped_position()
-				if x1 is not None and y1 is not None and x2 is not None and y2 is not None:
-					letter1 = self.letters[self.atom_list.index(atom1)]		#get letters associated with bond
-					letter2 = self.letters[self.atom_list.index(atom2)]
+		for bond in listOfBonds:
+			atom1, atom2 = bond.get_atoms()
+			x1, y1 = atom1.get_mapped_position()
+			x2, y2 = atom2.get_mapped_position()
+			if x1 is not None and y1 is not None and x2 is not None and y2 is not None:
+				letter1 = self.letters[self.atom_list.index(atom1)]		#get letters associated with bond
+				letter2 = self.letters[self.atom_list.index(atom2)]
 
-					#get cooridnates of associated letters
-					start_x, start_y = self.canvas.coords(letter1)
-					end_x, end_y = self.canvas.coords(letter2)
+				#get cooridnates of associated letters
+				start_x, start_y = self.canvas.coords(letter1)
+				end_x, end_y = self.canvas.coords(letter2)
 
-					#calculate line points
-					if start_x - end_x != 0:
-						angle = math.atan((start_y - end_y)/(start_x - end_x))
-					elif start_y >= end_y:
-						angle = math.pi/2
-					elif start_y < end_y:
-						angle = -math.pi/2
+				#calculate line points
+				if start_x - end_x != 0:
+					angle = math.atan((start_y - end_y)/(start_x - end_x))
+				elif start_y >= end_y:
+					angle = math.pi/2
+				elif start_y < end_y:
+					angle = -math.pi/2
 
-					if start_x >= end_x:
-						start_x = start_x - 20*math.cos(angle)
-						end_x = end_x + 20*math.cos(angle)
-						start_y = start_y - 20*math.sin(angle)
-						end_y = end_y + 20*math.sin(angle)
-					else:
-						start_x = start_x + 20*math.cos(angle)
-						end_x = end_x - 20*math.cos(angle)
-						start_y = start_y + 20*math.sin(angle)
-						end_y = end_y - 20*math.sin(angle)
+				if start_x >= end_x:
+					start_x = start_x - 20*math.cos(angle)
+					end_x = end_x + 20*math.cos(angle)
+					start_y = start_y - 20*math.sin(angle)
+					end_y = end_y + 20*math.sin(angle)
+				else:
+					start_x = start_x + 20*math.cos(angle)
+					end_x = end_x - 20*math.cos(angle)
+					start_y = start_y + 20*math.sin(angle)
+					end_y = end_y - 20*math.sin(angle)
 
-					lineStart = (start_x, start_y)
-					lineEnd = (end_x, end_y)
+				lineStart = (start_x, start_y)
+				lineEnd = (end_x, end_y)
 
-					#draw bond and add data to class-lists
-					bondType = bond.get_electron_bond_cost()
-					if bondType == 1:
-						sB = []
-						sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
-						self.singleBonds.append(sB)
-						self.single_bond_list.append(bond)
-						self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
-						self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
-					elif bondType == 2:
-						dB = []
-						dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
-						dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
-						self.doubleBonds.append(dB)
-						self.double_bond_list.append(bond)
-						self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
-						self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
-					elif bondType == 3:
-						tB = []
-						tB.append(self.canvas.create_line(lineStart, lineEnd, width=20, fill="black", tags="bond"))
-						tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
-						tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
-						self.tripleBonds.append(tB)
-						self.triple_bond_list.append(bond)
-						self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
-						self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
+				#draw bond and add data to class-lists
+				bondType = bond.get_electron_bond_cost()
+				if bondType == 1:
+					sB = []
+					sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
+					self.singleBonds.append(sB)
+					self.single_bond_list.append(bond)
+					self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
+				elif bondType == 2:
+					dB = []
+					dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
+					dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
+					self.doubleBonds.append(dB)
+					self.double_bond_list.append(bond)
+					self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
+				elif bondType == 3:
+					tB = []
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=20, fill="black", tags="bond"))
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
+					self.tripleBonds.append(tB)
+					self.triple_bond_list.append(bond)
+					self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
 
 		#get the atoms without positions (the atoms in the multiatom groups)
 		for atom in listOfAtoms:
@@ -656,68 +661,69 @@ class Gui_Edit_Molecule():
 								self.letterBondings.append([])
 		
 		# print the bonds of the atoms to the canvas
-		for atom in listOfAtoms:
-			bondsToAtom = self.graph.get_bonds_to_atom(atom)
-			for bond in bondsToAtom:
-				atom1, atom2 = bond.get_atoms()
-				x1, y1 = atom1.get_mapped_position()
-				x2, y2 = atom2.get_mapped_position()
-				if x1 is None or y1 is None or x2 is None or y2 is None:
-					letter1 = self.letters[self.atom_list.index(atom1)]		#get letters associated with bond
-					letter2 = self.letters[self.atom_list.index(atom2)]
+		for bond in listOfBonds:
+			atom1, atom2 = bond.get_atoms()
+			x1, y1 = atom1.get_mapped_position()
+			x2, y2 = atom2.get_mapped_position()
+			if x1 is None or y1 is None or x2 is None or y2 is None:
+				letter1 = self.letters[self.atom_list.index(atom1)]		#get letters associated with bond
+				letter2 = self.letters[self.atom_list.index(atom2)]
 
-					#get cooridnates of associated letters
-					start_x, start_y = self.canvas.coords(letter1)
-					end_x, end_y = self.canvas.coords(letter2)
+				#get cooridnates of associated letters
+				start_x, start_y = self.canvas.coords(letter1)
+				end_x, end_y = self.canvas.coords(letter2)
 
-					#calculate line points
-					if start_x - end_x != 0:
-						angle = math.atan((start_y - end_y)/(start_x - end_x))
-					elif start_y >= end_y:
-						angle = math.pi/2
-					elif start_y < end_y:
-						angle = -math.pi/2
+				#calculate line points
+				if start_x - end_x != 0:
+					angle = math.atan((start_y - end_y)/(start_x - end_x))
+				elif start_y >= end_y:
+					angle = math.pi/2
+				elif start_y < end_y:
+					angle = -math.pi/2
 
-					if start_x >= end_x:
-						start_x = start_x - 20*math.cos(angle)
-						end_x = end_x + 20*math.cos(angle)
-						start_y = start_y - 20*math.sin(angle)
-						end_y = end_y + 20*math.sin(angle)
-					else:
-						start_x = start_x + 20*math.cos(angle)
-						end_x = end_x - 20*math.cos(angle)
-						start_y = start_y + 20*math.sin(angle)
-						end_y = end_y - 20*math.sin(angle)
+				if start_x >= end_x:
+					start_x = start_x - 20*math.cos(angle)
+					end_x = end_x + 20*math.cos(angle)
+					start_y = start_y - 20*math.sin(angle)
+					end_y = end_y + 20*math.sin(angle)
+				else:
+					start_x = start_x + 20*math.cos(angle)
+					end_x = end_x - 20*math.cos(angle)
+					start_y = start_y + 20*math.sin(angle)
+					end_y = end_y - 20*math.sin(angle)
 
-					lineStart = (start_x, start_y)
-					lineEnd = (end_x, end_y)
+				lineStart = (start_x, start_y)
+				lineEnd = (end_x, end_y)
 
-					#draw bond and add data to class-lists
-					bondType = bond.get_electron_bond_cost()
-					if bondType == 1:
-						sB = []
-						sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
-						self.singleBonds.append(sB)
-						self.single_bond_list.append(bond)
-						self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
-						self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
-					elif bondType == 2:
-						dB = []
-						dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
-						dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
-						self.doubleBonds.append(dB)
-						self.double_bond_list.append(bond)
-						self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
-						self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
-					elif bondType == 3:
-						tB = []
-						tB.append(self.canvas.create_line(lineStart, lineEnd, width=20, fill="black", tags="bond"))
-						tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
-						tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
-						self.tripleBonds.append(tB)
-						self.triple_bond_list.append(bond)
-						self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
-						self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
+				#draw bond and add data to class-lists
+				bondType = bond.get_electron_bond_cost()
+				if bondType == 1:
+					sB = []
+					sB.append(self.canvas.create_line(lineStart, lineEnd, width=4, tags="bond"))
+					self.singleBonds.append(sB)
+					self.single_bond_list.append(bond)
+					self.letterBondings[self.letters.index(letter1)].append((self.singleBonds[len(self.singleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.singleBonds[len(self.singleBonds) - 1],  letter1)) 
+				elif bondType == 2:
+					dB = []
+					dB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="black", tags="bond"))
+					dB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="white", tags="bond"))
+					self.doubleBonds.append(dB)
+					self.double_bond_list.append(bond)
+					self.letterBondings[self.letters.index(letter1)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.doubleBonds[len(self.doubleBonds) - 1],  letter1))
+				elif bondType == 3:
+					tB = []
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=20, fill="black", tags="bond"))
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=12, fill="white", tags="bond"))
+					tB.append(self.canvas.create_line(lineStart, lineEnd, width=4, fill="black", tags="bond"))
+					self.tripleBonds.append(tB)
+					self.triple_bond_list.append(bond)
+					self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
+					self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
+	
+		for letterBond in self.letterBondings:
+			print(letterBond)
 				
 		
 ######################################################   DELETE BUTTON  #####################################################

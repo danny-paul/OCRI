@@ -55,9 +55,10 @@ class CovalentBond(Bond):
 			atom_error_two = "\tAtom Two:\t" + str(atom_two) + "\n"
 			bond_error = "\tDesired Bond:\t" + str(self.__class__.__name__)
 			raise NameError("Error: Atoms unable to bond\n\tDetails: \n" + atom_error_one + atom_error_two + bond_error)
-
-		super().__init__(atom_one, atom_two, electron_cost)
-		self.share_electrons()
+		else:
+			#else is here because it was still sharing the electrons when the atoms couldn't bond sometimes
+			super().__init__(atom_one, atom_two, electron_cost)
+			self.share_electrons()
 
 	# Represents the sharing of atoms across the formed bond between the two atoms
 	# Updates the electron count for participating atoms respective to bond formed
