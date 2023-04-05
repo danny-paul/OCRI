@@ -350,6 +350,21 @@ class Gui_Edit_Molecule():
 			self.canvas.delete("all")
 			warning.destroy()
 			self.enable_buttons()
+
+			# empty properties 
+			self.graph = Graph([])
+			self.letters = []			
+			self.atom_list = []			
+			self.letterBondings = []	
+										
+			
+			self.singleBonds = []		
+			self.doubleBonds = []		
+			self.tripleBonds = []		
+			self.single_bond_list = []	
+			self.double_bond_list = []	
+			self.triple_bond_list = []	
+
 		def no():
 			warning.destroy()
 			self.enable_buttons()
@@ -840,7 +855,6 @@ class Gui_Edit_Molecule():
 	# If it isn't, it sets "end" to the current mouse position and creates a new Bond object using
 	# self.canvas, self.start, self.end. Finally it resets "start" and "end" back to None.
 	def on_click_bond(self, event):
-		print("ok")
 		if self.line_instance is None:
 			if self.lineStart is None:
 				# keep mouse position so we can change it
@@ -903,8 +917,6 @@ class Gui_Edit_Molecule():
 					# calculate snap line to connected letters
 					start_x, start_y = self.lineStart
 					end_x, end_y = self.lineEnd
-					startPoint = self.lineStart     # these two are for the letterBonding array
-					endPoint = self.lineEnd
 
 					if start_x - end_x != 0:
 						angle = math.atan((start_y - end_y)/(start_x - end_x))
@@ -948,7 +960,9 @@ class Gui_Edit_Molecule():
 
 						# form bonds
 						try:
+							print("Before conditional")
 							if AddLine and self.startLetter != -1 and self.endLetter != -1:
+								print("within condiional")
 								# remove (possible) error messaages that are present
 								self.Comment_Field.delete(0, "end")
 
@@ -1003,13 +1017,16 @@ class Gui_Edit_Molecule():
 									self.letterBondings[self.letters.index(self.startLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.endLetter))
 									self.letterBondings[self.letters.index(self.endLetter)].append((self.tripleBonds[len(self.tripleBonds) - 1],  self.startLetter))  
 
-							# add to graph
-							self.graph.add_bond_via_bond_obj(bond)
+								# add to graph
+								self.graph.add_bond_via_bond_obj(bond)
 
 						except NameError as err:
 							print(err)
+							self.Comment_Field.delete(0, "end")
+							self.Comment_Field.insert(0, err)
 							AddLine = False
-
+				
+				# clear when second click occurs (regardless of success or failure)
 				self.startLetter = -1
 				self.endLetter = -1
 				self.startConnected = False
