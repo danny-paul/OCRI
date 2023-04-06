@@ -40,14 +40,18 @@ CANNOT_BOND_TO_SAME_TYPE = {
 
 ATOM_FULL_ELEC_COUNT = {
     'B':8, 'C':8, 'c':8, 'N': 8, 'O':8, 'F':8,
-    'Si':8, 'P':8, 'S':8, 'Cl':8,
-    'Br':8, 'I':8, 'H':2
+    'Si':8, 'P':8, 'S':8, 'Cl':8, 'Na': 8, 'Be': 8,
+    'Br':8, 'I':8, 'H':2, 'Li': 8, 'Mg':8, 'Al':8,
+    'K':8, 'Ca':8, 'As':8, 'Se':8, 'Sr':8, 'Sn':8,
+    'Sb':8, 'Ba':8, 'Pb':8, 'Bi':8, 'Ra':8
 }
 
 ATOM_UNBONDED_VAL_ELEC_COUNT = {
     'B':3, 'C':4, 'c':4, 'N': 5, 'O':6, 'F':7,
-    'Si':4, 'P':5, 'S':6, 'Cl':7,
-    'Br':7, 'I':7, 'H':1
+    'Si':4, 'P':5, 'S':6, 'Cl':7, 'Na': 1, 'Mg':2,
+    'Br':7, 'I':7, 'H':1, 'Li':1, 'Be':2, 'Al':3,
+    'K':1, 'Ca':2, 'As':5, 'Se':6, 'Sr':2, 'Sn':4,
+    'Sb':5, 'Ba':2, 'Pb':4, 'Bi':5, 'Ra':2
 }
 
 ATOM_NAME_TO_SYMBOL_DICT = {
