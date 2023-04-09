@@ -1,5 +1,6 @@
 from keras.models import load_model
 from PIL import Image, ImageEnhance
+#import tflite_runtime.interpreter as tflite
 import tensorflow as tf
 import cv2
 import matplotlib.pyplot as plt
@@ -41,7 +42,8 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#print("Loading NN model...")
 	#model = load_model(model_path)
 	#print("Done")
-	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
+	#interpreter = tflite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
+	interpreter = tf.add_nlite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter.allocate_tensors()
 	
 	#image_filename = 'DanTest.jpg'
