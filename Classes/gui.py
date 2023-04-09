@@ -14,9 +14,11 @@ from Classes.atom import Atom
 import Classes.constants as CONSTANT
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 import Image_Recognition.Recognizer as Recognizer
+"""
 import RPi.GPIO as GPIO
 from picamera import PiCamera
 from gpiozero import Button
+
 import time
 
 # Sets up the PiCamera and the Pi's GPIO pins
@@ -27,6 +29,7 @@ LED_RED_PIN = 12
 LED_GREEN_PIN = 1
 GPIO.setup(LED_RED_PIN, GPIO.OUT)
 GPIO.setup(LED_GREEN_PIN, GPIO.OUT)
+"""
 
 # main class for the GUI application
 class Gui_Edit_Molecule():
@@ -500,6 +503,7 @@ class Gui_Edit_Molecule():
 
 	def camera_capture(self):
 
+		"""
 		GPIO.output(LED_GREEN_PIN, GPIO.HIGH)
 		BUTTON_PIN.wait_for_press()
 		GPIO.output(LED_GREEN_PIN, GPIO.LOW)
@@ -522,9 +526,10 @@ class Gui_Edit_Molecule():
 
 		#Creates popup window
 		self.crop_popup()
+		"""
 
 	def exit_ocri(self):
-		GPIO.cleanup()
+		#GPIO.cleanup()
 		self.window.destroy()
 			
 	# Specific for the translate_image being disabled after it translates the image
