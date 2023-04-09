@@ -43,7 +43,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#model = load_model(model_path)
 	#print("Done")
 	#interpreter = tflite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
-	interpreter = tf.add_nlite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
+	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter.allocate_tensors()
 	
 	#image_filename = 'DanTest.jpg'
