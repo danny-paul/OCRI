@@ -14,6 +14,22 @@ from Classes.atom import Atom
 import Classes.constants as CONSTANT
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 import Image_Recognition.Recognizer as Recognizer
+"""
+import RPi.GPIO as GPIO
+from picamera import PiCamera
+from gpiozero import Button
+
+import time
+
+# Sets up the PiCamera and the Pi's GPIO pins
+GPIO.setmode(GPIO.BCM)
+camera = PiCamera()
+BUTTON_PIN = Button(16)
+LED_RED_PIN = 12
+LED_GREEN_PIN = 1
+GPIO.setup(LED_RED_PIN, GPIO.OUT)
+GPIO.setup(LED_GREEN_PIN, GPIO.OUT)
+"""
 
 # main class for the GUI application
 class Gui_Edit_Molecule():
@@ -90,10 +106,10 @@ class Gui_Edit_Molecule():
 		self.btn_translate_image = tk.Button(text="Translate Image", state = tk.DISABLED, command=self.send_image)
 		self.btn_translate_image.grid(row = 3, column = 6)
 
-		self.btn_photo = tk.Button(text = "Photo")
+		self.btn_photo = tk.Button(text = "Photo", command=self.capture_check)
 		self.btn_photo.grid(row = 3, column = 7)
 
-		self.btn_quit = tk.Button(text="Exit", command=self.window.destroy)
+		self.btn_quit = tk.Button(text="Exit", command=self.exit_ocri)
 		self.btn_quit.grid(row = 3, column = 8)
 
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
@@ -263,6 +279,13 @@ class Gui_Edit_Molecule():
 			self.fileb_exe()
 		else:
 			self.fileb_popup()
+
+	# Command for Camera Capture
+	def capture_check(self):
+		if self.canvas.find_all() == ():
+			self.camera_capture()
+		else:
+			self.camera_popup()
 
 
 	# Command for translate image button
@@ -446,7 +469,69 @@ class Gui_Edit_Molecule():
 
 		self.image = ImageTk.PhotoImage(self.PILimage)		#convert to tkinter image
 		self.canvas.create_image((self.canvas.winfo_width()/2, self.canvas.winfo_height()/2), image = self.image, anchor = tk.CENTER)
-	
+
+	# Popup for the camera button, will give the option to continue with the capture and clear the screen or
+	# cancel the capture and keep what is on the canvas
+	def camera_popup(self):
+		self.disable_buttons()
+
+		def yes():
+			self.canvas.delete("all")
+			warning.destroy()
+			self.enable_buttons()
+			self.camera_capture()
+
+			#empty properties when clearing
+			self.empty_properties()
+		def no():
+			warning.destroy()
+			self.enable_buttons()
+		
+		warning = tk.Tk()
+		warning.title("Warning")
+
+		warning_label = Label(warning, text = "This action will clear workspace, are you sure you want to continue?")
+		warning_label.pack()
+
+		button_yes = ttk.Button(warning, text = "Yes", command = yes)
+		button_yes.pack()
+
+		button_no = ttk.Button(warning, text = "No", command = no)
+		button_no.pack()
+
+		warning.mainloop()
+
+	def camera_capture(self):
+
+		"""
+		GPIO.output(LED_GREEN_PIN, GPIO.HIGH)
+		BUTTON_PIN.wait_for_press()
+		GPIO.output(LED_GREEN_PIN, GPIO.LOW)
+
+		GPIO.output(LED_RED_PIN, GPIO.HIGH)
+		camera.start_preview()
+		time.sleep(5)
+		BUTTON_PIN.wait_for_press()
+		time.sleep(1)
+		camera.capture('/home/abissell/Desktop/Test.jpg')
+		camera.stop_preview()
+		GPIO.output(LED_RED_PIN, GPIO.LOW)
+
+		self.clear_canvas()
+		self.PILimage = Image.open('/home/abissell/Desktop/Test.jpg')
+		self.image_name = '/home/abissell/Desktop/Test.jpg'
+
+		#resize image to fit in canvas
+		self.showImage()
+
+		#Creates popup window
+		self.crop_popup()
+		"""
+
+	def exit_ocri(self):
+		#GPIO.cleanup()
+		self.window.destroy()
+			
 	# Specific for the translate_image being disabled after it translates the image
 	def translate_enable_buttons(self):
 		self.btn_single_bond.configure(state = tk.NORMAL)
