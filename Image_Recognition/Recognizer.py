@@ -71,7 +71,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	blurredCopy = blurred.copy()
 
 	plt.imshow(blurred,cmap=cm.binary_r)
-	#plt.show()      #testing, show images used for recognition
+	plt.show()      #testing, show images used for recognition
 
 	#perform edge detection, find contours in the edge map, and sort the
 	#resulting contours from left-to-right
@@ -167,32 +167,34 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		label = labelNames[i]
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
-		if (prob >= 0) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.35):
-			#cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
+		if (prob >= 0) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.10):
+			cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			#cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
-			#cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+			cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 			letterBoxes.append((x, y, w, h, label))
 
 	#find median letterBox dimensions
-	areas = []
+	heights = []
 	for letterBox in letterBoxes:
 		x, y, w, h, label = letterBox
-		areas.append(w*h)
-	areas.sort()
+		heights.append(h)
+	heights.sort()
 
 	#filter out letterBoxes are much larger than the median
-	if len(areas) > 0:
-		median = areas[math.floor(len(areas)/2)]
+	if len(heights) > 0:
+		median = heights[math.floor(len(heights)/2)]
 		newLetterBoxes = []
 		for letterBox in letterBoxes:
 			x, y, w, h, label = letterBox
-			if w * h < 2.5*median:
+			if (label != 'n' and h < 1.40*median) or (label == 'n' and h < 1.25*median):
 				newLetterBoxes.append(letterBox)
 				#put white rectangle over letter so it is ignored in line segment detection
 				cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
 		letterBoxes = newLetterBoxes
 
 	WithChars = cropped     #image with characters, used for printing
+	cv2.imshow("Pred values", WithChars)
+	plt.show()
 	NoChars = cropped2      #image without characters, used for line segment detection
 
 	#NoChars = pureBlackWhite(NoChars)
@@ -325,8 +327,8 @@ def modifyPreds(pred):
 		pred[12] = pred[12] + 1
 	elif np.argmax(pred) == 17 and pred[17] > .45:		#H
 		pred[17] = pred[17] + 1
-	elif np.argmax(pred) == 23 and pred[23] > .45:		#N
-		pred[23] = pred[23] + 1
+	#elif np.argmax(pred) == 23 and pred[23] > .75:		#N
+		#pred[23] = pred[23] + 1
 	elif np.argmax(pred) == 24 and pred[24] > .42:		#O
 		pred[24] = pred[24] + 1
 
