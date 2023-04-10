@@ -324,16 +324,23 @@ class Gui_Edit_Molecule():
 
 		#send data to the recognizer
 		self.clear_canvas()
-		mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
-		print(mapped_node_arr)
-		self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
-		print(self.graph)
-		self.canvas.unbind("<ButtonPress-1>")
-		self.canvas.unbind("<B1-Motion>")
-		self.canvas.unbind("<ButtonRelease-1>")
-		self.translate_enable_buttons()
-		self.place_atoms_into_canvas()
-
+		try:
+			mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
+			print(mapped_node_arr)
+			self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
+			print(self.graph)
+			self.canvas.unbind("<ButtonPress-1>")
+			self.canvas.unbind("<B1-Motion>")
+			self.canvas.unbind("<ButtonRelease-1>")
+			self.translate_enable_buttons()
+			self.place_atoms_into_canvas()
+		except ValueError:
+			self.canvas.unbind("<ButtonPress-1>")
+			self.canvas.unbind("<B1-Motion>")
+			self.canvas.unbind("<ButtonRelease-1>")
+			self.translate_enable_buttons()
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Error recognizing image")
 
 	# Creates a popup window after the filebrowser has selected an image.
 	def crop_popup(self):

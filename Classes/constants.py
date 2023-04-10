@@ -30,13 +30,13 @@ MAGNESIUM_VAL_ELEC_COUNT = 2
 HYDROGEN_VAL_ELEC_COUNT = 1 
 HYDROGEN_FULL_ELEC_COUNT = 2
 
-CANNOT_BOND_TO_SAME_TYPE = {
-	"He": True,
-	"C": False,
-	"H": False,
-	"B": False,
-	"O": False
-}
+# CANNOT_BOND_TO_SAME_TYPE = {
+# 	"He": True,
+# 	"C": False,
+# 	"H": False,
+# 	"B": False,
+# 	"O": False
+# }
 
 ATOM_FULL_ELEC_COUNT = {
     'B':8, 'C':8, 'c':8, 'N': 8, 'O':8, 'F':8,
