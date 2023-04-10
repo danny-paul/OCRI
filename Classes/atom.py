@@ -34,8 +34,8 @@ class Atom(object):
 			
 			if base_val_electrons == -1 or shared_val_electrons == -1 or full_electron_config == -1:
 				try:
-					self.full_electron_config = CONSTANT.POLYATOMIC_UNBONDED_VAL_ELEC_COUNT[atom_type] # number of electrons req'd to have outer shell stable
-					self.base_val_electrons = CONSTANT.POLYATOMIC_FULL_ELEC_COUNT[atom_type] # valence electrons available when no bonding present
+					self.full_electron_config = CONSTANT.POLYATOMIC_FULL_ELEC_COUNT[atom_type] # number of electrons req'd to have outer shell stable
+					self.base_val_electrons = CONSTANT.POLYATOMIC_UNBONDED_VAL_ELEC_COUNT[atom_type] # valence electrons available when no bonding present
 					self.shared_val_electrons = 0 # electrons shared (base - shared >= 0)
 				except KeyError:
 					raise NameError('Atom type DNE in the POLYATOMIC dictionary, could not create atom. Atom type: ', str(atom_type))
