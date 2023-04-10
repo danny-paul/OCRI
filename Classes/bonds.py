@@ -117,9 +117,9 @@ class CovalentBond(Bond):
 	def impossible_bonding(atom_one: Atom, atom_two: Atom) -> bool:
 		impossible_bond: bool = False
 
-		if atom_one.get_type() == atom_two.get_type():
-			if CONSTANT.CANNOT_BOND_TO_SAME_TYPE[atom_one.get_type()]:
-				impossible_bond = True
+		# if atom_one.get_type() == atom_two.get_type():
+		# 	if CONSTANT.CANNOT_BOND_TO_SAME_TYPE[atom_one.get_type()]:
+		# 		impossible_bond = True
 
 		# cannot be the same atom instance (impossible in nature)
 		if atom_one == atom_two:

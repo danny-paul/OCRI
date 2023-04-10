@@ -1,5 +1,6 @@
 from keras.models import load_model
 from PIL import Image, ImageEnhance
+#import tflite_runtime.interpreter as tflite
 import tensorflow as tf
 import cv2
 import matplotlib.pyplot as plt
@@ -41,6 +42,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#print("Loading NN model...")
 	#model = load_model(model_path)
 	#print("Done")
+	#interpreter = tflite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter.allocate_tensors()
 	
@@ -70,7 +72,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	blurred = pureBlackWhite(blurred)
 	blurredCopy = blurred.copy()
 
-	plt.imshow(blurred,cmap=cm.binary_r)
+	#plt.imshow(blurred,cmap=cm.binary_r)
 	#plt.show()      #testing, show images used for recognition
 
 	#perform edge detection, find contours in the edge map, and sort the
@@ -167,32 +169,33 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		label = labelNames[i]
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
-		if (prob >= 0) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.35):
-			#cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
+		if (prob >= 0.7) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.10):
+			cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			#cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
-			#cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+			cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 			letterBoxes.append((x, y, w, h, label))
 
 	#find median letterBox dimensions
-	areas = []
+	heights = []
 	for letterBox in letterBoxes:
 		x, y, w, h, label = letterBox
-		areas.append(w*h)
-	areas.sort()
+		heights.append(h)
+	heights.sort()
 
 	#filter out letterBoxes are much larger than the median
-	if len(areas) > 0:
-		median = areas[math.floor(len(areas)/2)]
+	if len(heights) > 0:
+		median = heights[math.floor(len(heights)/2)]
 		newLetterBoxes = []
 		for letterBox in letterBoxes:
 			x, y, w, h, label = letterBox
-			if w * h < 2.5*median:
+			if (label != 'n' and h < 1.40*median) or (label == 'n' and h < 1.25*median):
 				newLetterBoxes.append(letterBox)
 				#put white rectangle over letter so it is ignored in line segment detection
 				cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
 		letterBoxes = newLetterBoxes
 
 	WithChars = cropped     #image with characters, used for printing
+	cv2.imshow("Pred values", WithChars)
 	NoChars = cropped2      #image without characters, used for line segment detection
 
 	#NoChars = pureBlackWhite(NoChars)
@@ -207,7 +210,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#Detect lines in the image
 	lines = lsd.detect(NoChars)[0] #position 0 of the retuned tuple are the detected lines
 
-	cv2.imshow("LSD input image", NoChars)
+	#cv2.imshow("LSD input image", NoChars)
 
 	#get rid of unnessessary lines
 	avgW, avgH = avgWH(letterBoxes)
@@ -240,9 +243,9 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		h = int(h)
 		cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
 		cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-	plt.imshow(WithChars)
+	#plt.imshow(WithChars)
 	plt.axis('on')
-	plt.show()
+	#plt.show()
 
 	return mapped_node_arr, mapped_edge_arr
 
@@ -321,11 +324,11 @@ def modifyPreds(pred):
 	pred[46] = pred[46]         #t
 
 	#these are the most common, so always allow them if they are the max value
-	if np.argmax(pred) == 12 and pred[12] > .45:		#C
+	if np.argmax(pred) == 12 and pred[12] > .50:		#C
 		pred[12] = pred[12] + 1
-	elif np.argmax(pred) == 17 and pred[17] > .45:		#H
+	elif np.argmax(pred) == 17 and pred[17] > .50:		#H
 		pred[17] = pred[17] + 1
-	elif np.argmax(pred) == 23 and pred[23] > .45:		#N
+	elif np.argmax(pred) == 23 and pred[23] > .50:		#N
 		pred[23] = pred[23] + 1
 	elif np.argmax(pred) == 24 and pred[24] > .42:		#O
 		pred[24] = pred[24] + 1
@@ -523,6 +526,7 @@ def mapEdges(letter_boxes, lines):
 		notMatched1 = True
 		notMatched2 = True
 
+		# do not create an implicit carbon if the line point is near a letter
 		for node in mapped_node_arr:
 			if node.contained_in_boundaries(line.x1, line.y1):
 				notMatched1 = False
@@ -576,7 +580,7 @@ def combineBoxes(letterBoxes):
 	avgWidth, avgHeight = avgWH(letterBoxes)
 	avgSize = avgWidth * avgHeight
 
-	boundBoxExpand = 0.75		#we are shrinking the bounding boxes because they are too big for this part,
+	boundBoxExpand = 0.65		#we are shrinking the bounding boxes because they are too big for this part,
 									#but fine for lines
 
 	#create group for letterBox i
@@ -629,7 +633,7 @@ def combineBoxes(letterBoxes):
 						BWidth = BX2 - BX1
 						BHeight = BY2 - BY1
 						#if the box has appropriate dimensions, add it to the new group, otherwise skip it
-						if BWidth * BHeight < 5*avgSize and BHeight < 3*avgHeight:
+						if BWidth * BHeight < 5*avgSize and BHeight < 2.5*avgHeight:
 							newGroup.append(letterBoxes[j])
 							grouped.add(j)
 							j = i + 1			#restart loop
