@@ -60,7 +60,7 @@ class Gui_Edit_Molecule():
 		#create dropdown menu for atoms
 		self.atomDropDownName = tk.StringVar()
 		self.atomDropDownName.set("Add Atom")
-		self.options = ["H","Li","Be","B","C","N","O","F","Na","Mg","Al","Si","P","S","Cl","K","Ca","As","Se","Br","Sr","Sn","Sb","Ba","Pb","Bi","Ra"]
+		self.options = ["H", "C", "B", "N", "O", "F", "Si", "P", "S", "Cl", "Br"]
 		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
 		#self.dropdown.pack(side="left")
 
@@ -71,36 +71,25 @@ class Gui_Edit_Molecule():
 		self.atomDropDownName = tk.StringVar()
 		self.atomDropDownName.set("Add PolyAtom")
 		self.options = {
-          		"NH\u2084\u207A": "NH4",
-                "SO\u2084\u00B2\u207B": "SO4",
-                "HSO\u2084\u207B": "HSO4",
-                "SO\u2083\u00B2\u207B": "SO3",
-                "NO\u2083\u207B": "NO3",
-                "NO\u2082\u207B": "NO2",
-                "PO\u2084\u207B\u00B3": "PO4",
-                "HPO\u2084\u00B2\u207B": "HPO4",
-                "H\u2082PO\u2084\u207B": "H2PO4",
-                "PO\u2083\u207B\u00B3": "PO3",
-                #"OH\u207B": "",
-                #"O\u2082\u00B2\u207B",
-                #"C\u2082H\u2083O\u2082\u207B",
-                "ClO\u2084\u207B": "ClO4",
-                "ClO\u2083\u207B": "Cl03",
-                "ClO\u2082\u207B": "Cl02",
-                "ClO\u207B": "ClO",
-                #"CrO\u2084\u00B2\u207B",
-                #"Cr\u2082O\u2087\u207B\u00B2",
-                "MnO\u2084\u207B": "MnO4",
-                "CN\u207B": "CN",
-                "CNO\u207B": "CNO", 
-                "SCN\u207B": "SCN" ,
-                "CO\u2083\u00B2\u207B": "CO3",
-                #"HCO\u2083\u207B",
-                "C\u2082O\u2084\u207B\u00B2": "C2O4",
-                #"S\u2082O\u2083\u00B2\u207B\u00B2",
-                #"Hg\u207A",
-                "H\u2083O\u207A": "H3O",
-                "NH\u2083": "NH3" 
+			"SO\u2084\u00B2\u207B": "SO4",
+			"HSO\u2084\u207B": "HSO4",
+			"SO\u2083\u00B2\u207B": "SO3",
+			"NO\u2083\u207B": "NO3",
+			"NO\u2082\u207B": "NO2",
+			"PO\u2084\u207B\u00B3": "PO4",
+			"HPO\u2084\u00B2\u207B": "HPO4",
+			"H\u2082PO\u2084\u207B": "H2PO4",
+			"PO\u2083\u207B\u00B3": "PO3",
+			"OH\u207B": "OH",
+			"ClO\u2084\u207B": "ClO4",
+			"ClO\u2083\u207B": "Cl03",
+			"ClO\u2082\u207B": "Cl02",
+			"\u207BOCl": "OCl",
+			"CN\u207B": "CN",
+			"\u207BOCN": "OCN", 
+			"SCN\u207B": "SCN" ,
+			"CO\u2083\u00B2\u207B": "CO3",
+			"C\u2082O\u2084\u207B\u00B2": "C2O4"
 		}
 		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
 		# placing next to Add Atom
