@@ -40,59 +40,35 @@ HYDROGEN_FULL_ELEC_COUNT = 2
 
 ATOM_FULL_ELEC_COUNT = {
     'B':8, 'C':8, 'c':8, 'N': 8, 'O':8, 'F':8,
-    'Si':8, 'P':8, 'S':8, 'Cl':8, 'Na': 8, 'Be': 8,
-    'Br':8, 'I':8, 'H':2, 'Li': 8, 'Mg':8, 'Al':8,
-    'K':8, 'Ca':8, 'As':8, 'Se':8, 'Sr':8, 'Sn':8,
-    'Sb':8, 'Ba':8, 'Pb':8, 'Bi':8, 'Ra':8
+    'Si':8, 'P':8, 'S':8, 'Cl':8, 
+    'Br':8, 'H':2
 }
 
 ATOM_UNBONDED_VAL_ELEC_COUNT = {
     'B':3, 'C':4, 'c':4, 'N': 5, 'O':6, 'F':7,
-    'Si':4, 'P':5, 'S':6, 'Cl':7, 'Na': 1, 'Mg':2,
-    'Br':7, 'I':7, 'H':1, 'Li':1, 'Be':2, 'Al':3,
-    'K':1, 'Ca':2, 'As':5, 'Se':6, 'Sr':2, 'Sn':4,
-    'Sb':5, 'Ba':2, 'Pb':4, 'Bi':5, 'Ra':2
+    'Si':4, 'P':5, 'S':6, 'Cl':7,
+    'Br':7, 'H':1
 }
 
 ATOM_NAME_TO_SYMBOL_DICT = {
-	"Hydrogen":"H", "Helium":"He", "Lithium":"Li","Beryllium":"Be", "Boron":"B",
-    "Carbon":"C", "Nitrogen":"N", "Oxygen":"O", "Fluorine":"F", "Neon":"Ne",
-    "Sodium":"Na", "Magnesium":"Mg", "Aluminum":"Al", "Silicon":"Si", "Phosphorus":"P",
-    "Sulfur":"S", "Chlorine":"Cl", "Argon":"Ar", "Potassium":"K", "Calcium":"Ca",
-    "Scandium":"Sc", "Titanium":"Ti", "Vanadium":"V", "Chromium":"Cr", "Manganese":"Mn",
-    "Iron":"Fe", "Cobalt":"Co", "Nickel":"Ni", "Copper":"Cu", "Zinc":"Zn",
-    "Gallium":"Ga", "Germanium":"Ge", "Arsenic":"As", "Selenium":"Se", "Bromine":"Br",
-    "Krypton":"Kr", "Rubidium":"Rb", "Strontium":"Sr", "Yttrium":"Y", "Zirconium":"Zr",
-    "Niobium":"Nb", "Molybdenum":"Mo", "Technetium":"Tc", "Ruthenium":"Ru", "Rhodium":"Rh",
-    "Palladium":"Pd", "Silver":"Ag", "Cadmium":"Cd", "Indium":"In", "Tin":"Sn",
-    "Antimony":"Sb", "Tellurium":"Te", "Iodine":"I", "Xenon":"Xe", "Cesium":"Cs",
-    "Barium":"Ba", "Lanthanum":"La", "Cerium":"Ce", "Praseodymium":"Pr", "Neodymium":"Nd",
-    "Promethium":"Pm", "Samarium":"Sm", "Europium":"Eu", "Gadolinium":"Gd", "Terbium":"Tb",
-    "Dysprosium":"Dy", "Holmium":"Ho", "Erbium":"Er", "Thulium":"Tm", "Ytterbium":"Yb",
-    "Lutetium":"Lu", "Hafnium":"Hf", "Tantalum":"Ta", "Wolfram":"W", "Rhenium":"Re",
-    "Osmium":"Os", "Iridium":"Ir", "Platinum":"Pt", "Gold":"Au", "Mercury":"Hg",
-    "Thallium":"Tl", "Lead":"Pb", "Bismuth":"Bi", "Polonium":"Po", "Astatine":"At",
-    "Radon":"Rn", "Francium":"Fr", "Radium":"Ra", "Actinium":"Ac", "Thorium":"Th",
-    "Protactinium":"Pa", "Uranium":"U", "Neptunium":"Np", "Plutonium":"Pu", "Americium":"Am",
-    "Curium":"Cm", "Berkelium":"Bk", "Californium":"Cf", "Einsteinium":"Es", "Fermium":"Fm",
-    "Mendelevium":"Md", "Nobelium":"No", "Lawrencium":"Lr", "Rutherfordium":"Rf", "Dubnium":"Db",
-    "Seaborgium":"Sg", "Bohrium":"Bh", "Hassium":"Hs", "Meitnerium":"Mt", "Darmstadtium ":"Ds",
-    "Roentgenium ":"Rg", "Copernicium ":"Cn", "Nihonium":"Nh", "Flerovium":"Fl", "Moscovium":"Mc",
-    "Livermorium":"Lv", "Tennessine":"Ts", "Oganesson":"Og"
+	"Hydrogen":"H", "Carbon": "C",
+    "Boron":"B", "Nitrogen":"N", 
+    "Oxygen":"O", "Fluorine":"F",
+    "Silicon":"Si", 
+    "Phosphorus":"P", "Sulfur":"S", 
+    "Chlorine":"Cl", "Bromine":"Br"
 }
 
 ATOM_SYMBOL_TO_NAME_DICT = {
-	"H":"Hydrogen", "Li":"Lithium", "Be":"Beryllium", "B":"Boron",
-	"C":"Carbon", "c" :"Carbon", "N":"Nitrogen", "O":"Oxygen", "F":"Fluorine",
-	"Na":"Sodium", "Mg":"Magnesium", "Al":"Aluminum", "Si":"Silicon", 
-    "P":"Phosphorus", "S":"Sulfur", "Cl":"Chlorine", "K":"Potassium", 
-    "Ca":"Calcium", "As":"Arsenic", "Se":"Selenium", "Br":"Bromine",
-	"Sr":"Strontium", "Sn":"Tin", "Sb":"Antimony", "Ba":"Barium", 
-	"Pb":"Lead", "Bi":"Bismuth", "Ra":"Radium"
+    "H":"Hydrogen", "C":"Carbon",
+    "B":"Boron", "N":"Nitrogen",
+    "O":"Oxygen", "F":"Fluorine",
+    "Si":"Silicon",
+    "P":"Phosphorus", "S":"Sulfur",
+    "Cl":"Chlorine", "Br":"Bromine"
 }
 
 POLYATOMIC_SYMBOL_TO_NAME_DICT = {
-    "NH4": "Ammonium",
     'SO4': 'Sulfate',
     'HSO4': 'Hydrogen Sulfate',
     'SO3': 'Sulfite',
@@ -105,97 +81,52 @@ POLYATOMIC_SYMBOL_TO_NAME_DICT = {
     'ClO4': 'Perchlorate',
     'ClO3': 'Chlorate',
     'ClO2': 'Chlorite',
-    'ClO': 'Hypochlorite',
-    'MnO4': 'Permanganate',
+    'OCl': 'Hypochlorite',
     'CN': 'Cyanide',
-    'CNO': 'Cyanate',
+    'OCN': 'Cyanate',
     'SCN': 'Thiocyanate',
     'CO3': 'Carbonate',
-    'C2O4': 'Oxalate',
-    'H3O': 'Hydronium',
-    'NH3': 'Ammonium',
-    'NH2': 'Ammonia'
+    'C2O4': 'Oxalate'
 }
 
 POLYATOMIC_UNBONDED_VAL_ELEC_COUNT = {
-    "NH4": 1,
-    'SO4': 1,
-    'HSO4': 1,
-    'SO3': 1,
-    'NO3': 1,
-    'NO2': 1,
-    'PO4': 1,
-    'HPO4': 1,
-    'H2PO4': 1,
-    'PO3': 1,
-    'ClO4': 1,
-    'ClO3': 1,
-    'ClO2': 1,
-    'ClO': 1,
-    'MnO4': 1,
-    'CN': 1,
-    'CNO': 1,
-    'SCN': 1,
-    'CO3': 1,
-    'C2O4': 1,
-    'H3O': 1,
-    'NH3': 1
-}
-
-POLYATOMIC_FULL_ELEC_COUNT = {
-    "NH4": 2,
     'SO4': 2,
-    'HSO4': 2,
+    'HSO4': 1,
     'SO3': 2,
     'NO3': 1,
     'NO2': 1,
-    'PO4': 1,
-    'HPO4': 1,
+    'PO4': 3,
+    'HPO4': 2,
     'H2PO4': 1,
-    'PO3': 1,
+    'PO3': 3,
     'ClO4': 1,
     'ClO3': 1,
     'ClO2': 1,
-    'ClO': 1,
-    'MnO4': 1,
+    'OCl': 1,
     'CN': 1,
-    'CNO': 1,
+    'OCN': 1,
     'SCN': 1,
-    'CO3': 1,
-    'C2O4': 1,
-    'H3O': 1,
-    'NH3': 1
+    'CO3': 2,
+    'C2O4': 2
 }
 
-FRONT_END_TO_BACKEND_POLYATOMIC = {
-          		"NH\u2084\u207A": "NH4",
-                "SO\u2084\u00B2\u207B": "SO4",
-                "HSO\u2084\u207B": "HSO4",
-                "SO\u2083\u00B2\u207B": "SO3",
-                "NO\u2083\u207B": "NO3",
-                "NO\u2082\u207B": "NO2",
-                "PO\u2084\u207B\u00B3": "PO4",
-                "HPO\u2084\u00B2\u207B": "HPO4",
-                "H\u2082PO\u2084\u207B": "H2PO4",
-                "PO\u2083\u207B\u00B3": "PO3",
-                #"OH\u207B": "",
-                #"O\u2082\u00B2\u207B",
-                #"C\u2082H\u2083O\u2082\u207B",
-                "ClO\u2084\u207B": "ClO4",
-                "ClO\u2083\u207B": "Cl03",
-                "ClO\u2082\u207B": "Cl02",
-                "ClO\u207B": "ClO",
-                #"CrO\u2084\u00B2\u207B",
-                #"Cr\u2082O\u2087\u207B\u00B2",
-                "MnO\u2084\u207B": "MnO4",
-                "CN\u207B": "CN",
-                "CNO\u207B": "CNO", 
-                "SCN\u207B": "SCN" ,
-                "CO\u2083\u00B2\u207B": "CO3",
-                #"HCO\u2083\u207B",
-                "C\u2082O\u2084\u207B\u00B2": "C2O4",
-                #"S\u2082O\u2083\u00B2\u207B\u00B2",
-                #"Hg\u207A",
-                "H\u2083O\u207A": "H3O",
-                "NH\u2083": "NH3" 
+POLYATOMIC_FULL_ELEC_COUNT = {
+    'SO4': 4,
+    'HSO4': 2,
+    'SO3': 4,
+    'NO3': 2,
+    'NO2': 2,
+    'PO4': 6,
+    'HPO4': 4,
+    'H2PO4': 2,
+    'PO3': 6,
+    'ClO4': 2,
+    'ClO3': 2,
+    'ClO2': 2,
+    'OCl': 2,
+    'CN': 2,
+    'OCN': 2,
+    'SCN': 2,
+    'CO3': 4,
+    'C2O4': 4
 }
