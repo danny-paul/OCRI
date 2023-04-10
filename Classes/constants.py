@@ -130,3 +130,36 @@ POLYATOMIC_FULL_ELEC_COUNT = {
     'CO3': 4,
     'C2O4': 4
 }
+
+FRONT_END_TO_BACKEND_POLYATOMIC = {
+          		"NH\u2084\u207A": "NH4",
+                "SO\u2084\u00B2\u207B": "SO4",
+                "HSO\u2084\u207B": "HSO4",
+                "SO\u2083\u00B2\u207B": "SO3",
+                "NO\u2083\u207B": "NO3",
+                "NO\u2082\u207B": "NO2",
+                "PO\u2084\u207B\u00B3": "PO4",
+                "HPO\u2084\u00B2\u207B": "HPO4",
+                "H\u2082PO\u2084\u207B": "H2PO4",
+                "PO\u2083\u207B\u00B3": "PO3",
+                #"OH\u207B": "",
+                #"O\u2082\u00B2\u207B",
+                #"C\u2082H\u2083O\u2082\u207B",
+                "ClO\u2084\u207B": "ClO4",
+                "ClO\u2083\u207B": "Cl03",
+                "ClO\u2082\u207B": "Cl02",
+                "ClO\u207B": "ClO",
+                #"CrO\u2084\u00B2\u207B",
+                #"Cr\u2082O\u2087\u207B\u00B2",
+                "MnO\u2084\u207B": "MnO4",
+                "CN\u207B": "CN",
+                "CNO\u207B": "CNO", 
+                "SCN\u207B": "SCN" ,
+                "CO\u2083\u00B2\u207B": "CO3",
+                #"HCO\u2083\u207B",
+                "C\u2082O\u2084\u207B\u00B2": "C2O4",
+                #"S\u2082O\u2083\u00B2\u207B\u00B2",
+                #"Hg\u207A",
+                "H\u2083O\u207A": "H3O",
+                "NH\u2083": "NH3" 
+}
