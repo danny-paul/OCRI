@@ -1,7 +1,7 @@
 
 import tkinter as tk
 import math
-from tkinter import NORMAL, Label, Toplevel, filedialog as fido
+from tkinter import NORMAL, font, Label, Toplevel, filedialog as fido
 from tkinter import ttk # duplicate
 from PIL import Image, ImageTk
 from Classes.graph import Graph
@@ -14,12 +14,11 @@ from Classes.atom import Atom
 import Classes.constants as CONSTANT
 from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
 import Image_Recognition.Recognizer as Recognizer
+import time
 """
 import RPi.GPIO as GPIO
 from picamera import PiCamera
 from gpiozero import Button
-
-import time
 
 # Sets up the PiCamera and the Pi's GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -48,24 +47,27 @@ class Gui_Edit_Molecule():
 		self.triple_bond_list = []	#holds triple bond objects for the graph
 		#kinda sucks to have 3 lists for the bonds, but it is much easier to manage the lists this way
 		self.graph = Graph([])
+		
+		# Fonts for the UI
+		self.UIFont1 = font.Font(family = 'Ariel', size = 12)
 
-		# takes in a window object, intializes a dropdown and a canvas object
-		# and packs them into the window.
+		# create the frame for the GUI
 		self.window = window
 		self.x = self.y = 0
 
-		# screen height is temporarily changed from SH-100 to SH-300 for testing purposes
+				# FULL SCREEN MODE
+				#self.window.attributes('-fullscreen',True)
+				#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
+
+		#///---TESTING MODE---///
 		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-300), height=(self.window.winfo_screenheight()-300))
 
 		#create dropdown menu for atoms
 		self.atomDropDownName = tk.StringVar()
 		self.atomDropDownName.set("Add Atom")
 		self.options = ["H", "C", "B", "N", "O", "F", "Si", "P", "S", "Cl", "Br"]
-		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
-		#self.dropdown.pack(side="left")
-
-		self.dropdown.grid(row = 0, column = 0)
-  
+		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown1.config(font = self.UIFont1)
 		
 		# create dropdown menu for adding polyatomic atoms
 		self.atomDropDownName = tk.StringVar()
@@ -91,12 +93,10 @@ class Gui_Edit_Molecule():
 			"CO\u2083\u00B2\u207B": "CO3",
 			"C\u2082O\u2084\u207B\u00B2": "C2O4"
 		}
-		self.dropdown = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
-		# placing next to Add Atom
-		self.dropdown.grid(row = 0, column = 1)
+		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown2.config(font = self.UIFont1)
 
-		# self.canvas = tk.Canvas(self.window, bg="white", width=900, height=600)
-		self.canvas.grid(row = 1, column = 0, columnspan = 10)		
+		# self.canvas = tk.Canvas(self.window, bg="white", width=900, height=600)		
 		
 		# Intializes an empty list letters to store the Letters objects.
 		self.letters = []
@@ -105,41 +105,36 @@ class Gui_Edit_Molecule():
 		#self.canvas.bind("<Button-1>", self.place_letter)
 
 		# init for Input Field
-		self.Comment_Field = tk.Entry(width = 200)
-		self.Comment_Field.grid(row = 2, column = 0, columnspan = 10)
+		self.Comment_Field = tk.Entry(width = 200, font = self.UIFont1)
+		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
-		# init buttons with frames
-		self.btn_single_bond = tk.Button(text="Single Bond", command=self.create_single_bond)
-		self.btn_single_bond.grid(row = 3, column = 0)
-		self.single_bond_creator = None
-		
-		self.btn_double_bond = tk.Button(text="Double Bond", command=self.create_double_bond)
-		self.btn_double_bond.grid(row = 3, column = 1)
-		self.double_bond_creator = None
-		
-		self.btn_triple_bond = tk.Button(text="Triple Bond", command=self.create_triple_bond)
-		self.btn_triple_bond.grid(row = 3, column = 2)
-		self.triple_bond_creator = None
-		
-		# delete atoms and bonds on canvas
-		self.btn_delete = tk.Button(text="Delete", command=self.activate_delete)
-		self.btn_delete.grid(row = 3, column = 3)
+		# Initialize the buttons
+		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 50, 	font = self.UIFont1, command=self.create_single_bond)
+		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 50, 	font = self.UIFont1, command=self.create_double_bond)
+		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 50, 	font = self.UIFont1, command=self.create_triple_bond)
+		self.btn_delete = 			tk.Button(text="Delete", 							font = self.UIFont1, command=self.activate_delete)
 		self.is_delete_active = False
-
-		self.btn_clear = tk.Button(text="Clear", command=self.clear)
-		self.btn_clear.grid(row = 3, column = 4)
-
-		self.btn_import_file = tk.Button(text="Import", command=self.browseFiles)
-		self.btn_import_file.grid(row = 3, column = 5)
-
-		self.btn_translate_image = tk.Button(text="Translate Image", state = tk.DISABLED, command=self.send_image)
-		self.btn_translate_image.grid(row = 3, column = 6)
-
-		self.btn_photo = tk.Button(text = "Photo", command=self.capture_check)
-		self.btn_photo.grid(row = 3, column = 7)
-
-		self.btn_quit = tk.Button(text="Exit", command=self.exit_ocri)
-		self.btn_quit.grid(row = 3, column = 8)
+		self.btn_clear = 			tk.Button(text="Clear", 							font = self.UIFont1, command=self.clear)
+		self.btn_import_file = 		tk.Button(text="Import", 							font = self.UIFont1, command=self.browseFiles)
+		self.btn_translate_image = 	tk.Button(text="Translate Image",wraplength = 75,	font = self.UIFont1, command=self.send_image, state = tk.DISABLED)
+		self.btn_photo = 			tk.Button(text="Photo", 							font = self.UIFont1, command=self.capture_check)
+		self.btn_quit = 			tk.Button(text="Exit", 								font = self.UIFont1, command=self.exit_ocri)
+		
+		# Place widgets on the grid
+		# Full Screen App
+		self.dropdown1.grid				(row = 0, column = 1, sticky = 'e')
+		self.dropdown2.grid				(row = 0, column = 2)
+		self.canvas.grid				(row = 1, column = 0, rowspan = 9, columnspan = 3)
+		self.Comment_Field.grid			(row = 10, column = 0)
+		self.btn_single_bond.grid		(row = 1, column = 3, sticky = 'nesw')
+		self.btn_double_bond.grid		(row = 2, column = 3, sticky = 'nesw')
+		self.btn_triple_bond.grid		(row = 3, column = 3, sticky = 'nesw')
+		self.btn_delete.grid			(row = 4, column = 3, sticky = 'nesw')
+		self.btn_clear.grid				(row = 5, column = 3, sticky = 'nesw')
+		self.btn_import_file.grid		(row = 6, column = 3, sticky = 'nesw')
+		self.btn_translate_image.grid	(row = 7, column = 3, sticky = 'nesw')
+		self.btn_photo.grid				(row = 8, column = 3, sticky = 'nesw')
+		self.btn_quit.grid				(row = 9, column = 3, sticky = 'nesw')
 
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
 
@@ -177,7 +172,8 @@ class Gui_Edit_Molecule():
 		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
 		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
 		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
-		self.atomDropDownName.set("Add Atom")
+
+#/// --- NEED CHECK HERE TO CHANGE BACK THE DROPDOWN TO "Add Atom" or "Add PolyAtom"
 
 	def select_textbox(self, event):
 		self.selected = True
@@ -267,6 +263,8 @@ class Gui_Edit_Molecule():
 	# gets the first x and y cord and updates it for drawing the rect
 	def on_button_press(self, event):
 		# save mouse drag start position
+		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Release to confirm crop rectangle")
 
 		if self.rect is not None:
 			self.canvas.delete(self.rect)
@@ -293,6 +291,8 @@ class Gui_Edit_Molecule():
 	def on_button_release(self, event):
 		self.cropX2 = event.x
 		self.cropY2 = event.y
+		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Transfer image when ready or repeat cropping procedure")
 
 
 	def activate_delete(self):
@@ -314,8 +314,12 @@ class Gui_Edit_Molecule():
 	# Command for the import button
 	def browseFiles(self):
 		if self.canvas.find_all() == ():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "File browser deployed")
 			self.fileb_exe()
 		else:
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Warning: Popup window deployed!")
 			self.fileb_popup()
 
 	# Command for Camera Capture
@@ -387,7 +391,7 @@ class Gui_Edit_Molecule():
 
 		def accept():
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Image Accepted")
+			self.Comment_Field.insert(0, "Image Accepted, please translate image")
 			self.btn_translate_image.configure(state = tk.NORMAL)
 			popup.destroy()
 			#set crop to maximum bounds
@@ -398,7 +402,7 @@ class Gui_Edit_Molecule():
 
 		def crop():
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Crop Image Please")
+			self.Comment_Field.insert(0, "Crop Image by holding down the left mouse button and dragging, release when the black rectangle is around what you want to be translated")
 			self.btn_translate_image.configure(state = tk.NORMAL)
 			popup.destroy()
 			self.drawrectangle()
@@ -426,32 +430,42 @@ class Gui_Edit_Molecule():
 
 	# Clear canvas popup window, will ask if they want to clear the whole canvas or not
 	def clear(self):
-		self.disable_buttons()
+		if self.canvas.find_all() == ():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Canvas is already cleared!")
+		else:
+			self.disable_buttons()
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Warning: Popup window deployed!")
 
-		def yes():
-			self.canvas.delete("all")
-			warning.destroy()
-			self.enable_buttons()
+			def yes():
+				self.canvas.delete("all")
+				warning.destroy()
+				self.enable_buttons()
 
-			self.empty_properties()
+				self.empty_properties()
+				self.Comment_Field.delete(0, "end")
+				self.Comment_Field.insert(0, "Canvas cleared")
 
-		def no():
-			warning.destroy()
-			self.enable_buttons()
-		
-		warning = tk.Tk()
-		warning.title("Warning")
+			def no():
+				warning.destroy()
+				self.enable_buttons()
+				self.Comment_Field.delete(0, "end")
+				self.Comment_Field.insert(0, "Clear canceled")
+			
+			warning = tk.Tk()
+			warning.title("Warning")
 
-		warning_label = Label(warning, text = "Are you sure you want to delete all items?")
-		warning_label.pack()
+			warning_label = Label(warning, text = "Are you sure you want to delete all items?")
+			warning_label.pack()
 
-		button_yes = ttk.Button(warning, text = "Yes", command = yes)
-		button_yes.pack()
+			button_yes = ttk.Button(warning, text = "Yes", command = yes)
+			button_yes.pack()
 
-		button_no = ttk.Button(warning, text = "No", command = no)
-		button_no.pack()
+			button_no = ttk.Button(warning, text = "No", command = no)
+			button_no.pack()
 
-		warning.mainloop()
+			warning.mainloop()
 
 	# Popup for the file import button, will give the option to continue with the import and clear the screen or
 	# cancel the import and keep what is on the canvas
@@ -462,6 +476,8 @@ class Gui_Edit_Molecule():
 			self.canvas.delete("all")
 			warning.destroy()
 			self.enable_buttons()
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "File browser deployed")
 			self.fileb_exe()
 
 			#empty properties when clearing
@@ -469,6 +485,8 @@ class Gui_Edit_Molecule():
 		def no():
 			warning.destroy()
 			self.enable_buttons()
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Import canceled")
 		
 		warning = tk.Tk()
 		warning.title("Warning")
@@ -549,6 +567,8 @@ class Gui_Edit_Molecule():
 	def camera_capture(self):
 
 		"""
+		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Ready light on, press yellow button on camera module to start image capture")
 		GPIO.output(LED_GREEN_PIN, GPIO.HIGH)
 		BUTTON_PIN.wait_for_press()
 		GPIO.output(LED_GREEN_PIN, GPIO.LOW)
@@ -560,6 +580,8 @@ class Gui_Edit_Molecule():
 		time.sleep(1)
 		camera.capture('/home/abissell/Desktop/Test.jpg')
 		camera.stop_preview()
+		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Image Captured!")
 		GPIO.output(LED_RED_PIN, GPIO.LOW)
 
 		self.clear_canvas()
@@ -574,8 +596,32 @@ class Gui_Edit_Molecule():
 		"""
 
 	def exit_ocri(self):
-		#GPIO.cleanup()
-		self.window.destroy()
+		self.disable_buttons()
+
+		def yes():
+			warning.destroy()
+			#GPIO.cleanup()
+			self.window.destroy()
+		def no():
+			warning.destroy()
+			self.enable_buttons()
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Exit canceled")
+		
+		warning = tk.Tk()
+		warning.title("Quit")
+
+		warning_label = Label(warning, text = "Are you sure you want to quit OCRI?")
+		warning_label.pack()
+
+		button_yes = ttk.Button(warning, text = "Yes", command = yes)
+		button_yes.pack()
+
+		button_no = ttk.Button(warning, text = "No", command = no)
+		button_no.pack()
+
+		warning.mainloop()
+
 			
 	# Specific for the translate_image being disabled after it translates the image
 	def translate_enable_buttons(self):
@@ -873,6 +919,7 @@ class Gui_Edit_Molecule():
 		item = self.canvas.find_closest(event.x, event.y)[0]
 		self.enable_buttons()
 		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Item Deleted")
 		
 		# Check if item is a letter or bond object, delete that item, and return cursor back to normal.
 		#if self.canvas.type(item) in ["text", "line"]:
@@ -1096,6 +1143,7 @@ class Gui_Edit_Molecule():
 								print("within condiional")
 								# remove (possible) error messaages that are present
 								self.Comment_Field.delete(0, "end")
+								self.Comment_Field.insert(0, "Bond Created!")
 
 								if self.bond_type == 1:
 
