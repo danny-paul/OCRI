@@ -55,13 +55,18 @@ class Gui_Edit_Molecule():
 		self.window = window
 		self.x = self.y = 0
 
-				# FULL SCREEN MODE
-				#self.window.attributes('-fullscreen',True)
-				#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
+##################################################   Formatting for full screen Pi, full screen desktop, and test mode    ##################################################
+	# Rapsberry Pi Fullscreen mode
+		#self.window.geometry("800x480")
+		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-50), height=(self.window.winfo_screenheight()-80))
 
-		#///---TESTING MODE---///
-		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-300), height=(self.window.winfo_screenheight()-300))
+	# Full screen desktop
+		#self.window.attributes('-fullscreen',True)
+		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
 
+	# Test mode desktop
+		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-500), height=(self.window.winfo_screenheight()-500))
+##########################################################################################################################################################################
 		#create dropdown menu for atoms
 		self.atomDropDownName = tk.StringVar()
 		self.atomDropDownName.set("Add Atom")
@@ -94,24 +99,19 @@ class Gui_Edit_Molecule():
 			"C\u2082O\u2084\u207B\u00B2": "C2O4"
 		}
 		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
-		self.dropdown2.config(font = self.UIFont1)
-
-		# self.canvas = tk.Canvas(self.window, bg="white", width=900, height=600)		
+		self.dropdown2.config(font = self.UIFont1)	
 		
 		# Intializes an empty list letters to store the Letters objects.
 		self.letters = []
-		
-		# binds the place_letter method to the canvas object to listen for mouse clicks on the canvas.
-		#self.canvas.bind("<Button-1>", self.place_letter)
 
 		# init for Input Field
-		self.Comment_Field = tk.Entry(width = 200, font = self.UIFont1)
+		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIFont1)
 		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
 		# Initialize the buttons
-		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 50, 	font = self.UIFont1, command=self.create_single_bond)
-		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 50, 	font = self.UIFont1, command=self.create_double_bond)
-		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 50, 	font = self.UIFont1, command=self.create_triple_bond)
+		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_single_bond)
+		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_double_bond)
+		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 75, 	font = self.UIFont1, command=self.create_triple_bond)
 		self.btn_delete = 			tk.Button(text="Delete", 							font = self.UIFont1, command=self.activate_delete)
 		self.is_delete_active = False
 		self.btn_clear = 			tk.Button(text="Clear", 							font = self.UIFont1, command=self.clear)
@@ -125,7 +125,6 @@ class Gui_Edit_Molecule():
 		self.dropdown1.grid				(row = 0, column = 1, sticky = 'e')
 		self.dropdown2.grid				(row = 0, column = 2)
 		self.canvas.grid				(row = 1, column = 0, rowspan = 9, columnspan = 3)
-		self.Comment_Field.grid			(row = 10, column = 0)
 		self.btn_single_bond.grid		(row = 1, column = 3, sticky = 'nesw')
 		self.btn_double_bond.grid		(row = 2, column = 3, sticky = 'nesw')
 		self.btn_triple_bond.grid		(row = 3, column = 3, sticky = 'nesw')
@@ -135,6 +134,7 @@ class Gui_Edit_Molecule():
 		self.btn_translate_image.grid	(row = 7, column = 3, sticky = 'nesw')
 		self.btn_photo.grid				(row = 8, column = 3, sticky = 'nesw')
 		self.btn_quit.grid				(row = 9, column = 3, sticky = 'nesw')
+		self.Comment_Field.grid			(row = 10, column = 0)
 
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
 
