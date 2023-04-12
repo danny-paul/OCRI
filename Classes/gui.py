@@ -68,15 +68,15 @@ class Gui_Edit_Molecule():
 		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-500), height=(self.window.winfo_screenheight()-500))
 ##########################################################################################################################################################################
 		#create dropdown menu for atoms
-		self.atomDropDownName = tk.StringVar()
-		self.atomDropDownName.set("Add Atom")
+		self.atomDropDownName1 = tk.StringVar()
+		self.atomDropDownName1.set("Add Atom")
 		self.options = ["H", "C", "B", "N", "O", "F", "Si", "P", "S", "Cl", "Br"]
-		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName1, *self.options, command=self.dropdown_select_option)
 		self.dropdown1.config(font = self.UIFont1)
 		
 		# create dropdown menu for adding polyatomic atoms
-		self.atomDropDownName = tk.StringVar()
-		self.atomDropDownName.set("Add PolyAtom")
+		self.atomDropDownName2 = tk.StringVar()
+		self.atomDropDownName2.set("Add PolyAtom")
 		self.options = {
 			"SO\u2084\u00B2\u207B": "SO4",
 			"HSO\u2084\u207B": "HSO4",
@@ -98,7 +98,7 @@ class Gui_Edit_Molecule():
 			"CO\u2083\u00B2\u207B": "CO3",
 			"C\u2082O\u2084\u207B\u00B2": "C2O4"
 		}
-		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName2, *self.options, command=self.dropdown_select_option)
 		self.dropdown2.config(font = self.UIFont1)	
 		
 		# Intializes an empty list letters to store the Letters objects.
@@ -144,15 +144,10 @@ class Gui_Edit_Molecule():
 		self.clear_line_creation()
 		self.Comment_Field.delete(0, "end")
 
-		#if self.tags == "poly":
-
 		try:
-			# option = FRONT_END_TO_BACKEND_POLYATOMIC["NH\u2084\u207A"]
 			option = CONSTANT.FRONT_END_TO_BACKEND_POLYATOMIC[option]
 		except KeyError:
 			None
-
-		
 
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
@@ -172,8 +167,11 @@ class Gui_Edit_Molecule():
 		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
 		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
 		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
-
-#/// --- NEED CHECK HERE TO CHANGE BACK THE DROPDOWN TO "Add Atom" or "Add PolyAtom"
+		# reset dropdowns once letter is placed
+		if self.atomDropDownName2:
+			self.atomDropDownName2.set("Add PolyAtom")
+		if self.atomDropDownName1:
+			self.atomDropDownName1.set("Add Atom")
 
 	def select_textbox(self, event):
 		self.selected = True
