@@ -4,6 +4,8 @@ import math
 from tkinter import NORMAL, font, Label, Toplevel, filedialog as fido
 from tkinter import ttk # duplicate
 from PIL import Image, ImageTk
+import cv2
+import os
 from Classes.graph import Graph
 from Classes.bonds import Bond
 from Classes.bonds import CovalentBond
@@ -585,6 +587,10 @@ class Gui_Edit_Molecule():
 		GPIO.output(LED_RED_PIN, GPIO.LOW)
 
 		self.clear_canvas()
+		os.chdir('/home/abissell/Desktop/')
+		self.temp = cv2.imread('/home/abissell/Desktop/Test.jpg')
+		self.temp = cv2.rotate(self.temp, cv2.ROTATE_90_CLOCKWISE)
+		cv2.imwrite('Test.jpg', self.temp)
 		self.PILimage = Image.open('/home/abissell/Desktop/Test.jpg')
 		self.image_name = '/home/abissell/Desktop/Test.jpg'
 
