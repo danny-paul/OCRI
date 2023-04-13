@@ -96,8 +96,8 @@ class Gui_Edit_Molecule():
 			"PO\u2083\u207B\u00B3": "PO3",
 			"OH\u207B": "OH",
 			"ClO\u2084\u207B": "ClO4",
-			"ClO\u2083\u207B": "Cl03",
-			"ClO\u2082\u207B": "Cl02",
+			"ClO\u2083\u207B": "ClO3",
+			"ClO\u2082\u207B": "ClO2",
 			"\u207BOCl": "OCl",
 			"CN\u207B": "CN",
 			"\u207BOCN": "OCN", 
@@ -151,20 +151,31 @@ class Gui_Edit_Molecule():
 		self.clear_line_creation()
 		self.Comment_Field.delete(0, "end")
 
-		try:
-			option = CONSTANT.FRONT_END_TO_BACKEND_POLYATOMIC[option]
-		except KeyError:
-			None
-
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
 	
 	#place a letter on the canvas
 	def place_letter(self, event):
-		self.textbox = self.canvas.create_text(event.x, event.y, text=self.selected_option, font=("Arial", 20), tags="letter")
+		
+		try:
+			# append polyatomic with subscripts but WITHOUT charges
+			print('CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]:\t', str(self.selected_option), '\t' , str(CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]))
+			temp_option = CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]
+			self.textbox = self.canvas.create_text(event.x, event.y, text=temp_option, font=("Arial", 20), tags="letter")	
+		except KeyError:
+			# not polyatomic, change nothing
+			self.textbox = self.canvas.create_text(event.x, event.y, text=self.selected_option, font=("Arial", 20), tags="letter")
+			None
+
 		self.letters.append(self.textbox)
 
 		#add atom object
+		try:
+			# translate polyatomic to non-unicode for backend
+			self.selected_option = CONSTANT.FRONT_END_TO_BACKEND_POLYATOMIC[self.selected_option]
+		except KeyError:
+			None
+
 		atom = Atom(self.selected_option)
 		self.atom_list.append(atom)
 		self.graph.add_node_via_atom_obj(atom)
@@ -175,6 +186,7 @@ class Gui_Edit_Molecule():
 		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
 		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
 		# reset dropdowns once letter is placed
+		print('self.atomDropDownName2:', str(self.atomDropDownName2), str('\n'))
 		if self.atomDropDownName2:
 			self.atomDropDownName2.set("Add PolyAtom")
 		if self.atomDropDownName1:
