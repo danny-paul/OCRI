@@ -4,6 +4,8 @@ import math
 from tkinter import NORMAL, font, Label, Toplevel, filedialog as fido
 from tkinter import ttk # duplicate
 from PIL import Image, ImageTk
+import cv2
+import os
 from Classes.graph import Graph
 from Classes.bonds import Bond
 from Classes.bonds import CovalentBond
@@ -50,28 +52,34 @@ class Gui_Edit_Molecule():
 		
 		# Fonts for the UI
 		self.UIFont1 = font.Font(family = 'Ariel', size = 12)
+		self.UIEFPi = font.Font(family = 'Ariel', size = 9)
 
 		# create the frame for the GUI
 		self.window = window
 		self.x = self.y = 0
 
-				# FULL SCREEN MODE
-				#self.window.attributes('-fullscreen',True)
-				#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
+##################################################   Formatting for full screen Pi, full screen desktop, and test mode    ##################################################
+	# Rapsberry Pi Fullscreen mode
+		#self.window.geometry("800x480")
+		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-50), height=(self.window.winfo_screenheight()-80))
 
-		#///---TESTING MODE---///
-		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-300), height=(self.window.winfo_screenheight()-300))
+	# Full screen desktop
+		#self.window.attributes('-fullscreen',True)
+		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
 
+	# Test mode desktop
+		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-500), height=(self.window.winfo_screenheight()-500))
+##########################################################################################################################################################################
 		#create dropdown menu for atoms
-		self.atomDropDownName = tk.StringVar()
-		self.atomDropDownName.set("Add Atom")
+		self.atomDropDownName1 = tk.StringVar()
+		self.atomDropDownName1.set("Add Atom")
 		self.options = ["H", "C", "B", "N", "O", "F", "Si", "P", "S", "Cl", "Br"]
-		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName1, *self.options, command=self.dropdown_select_option)
 		self.dropdown1.config(font = self.UIFont1)
 		
 		# create dropdown menu for adding polyatomic atoms
-		self.atomDropDownName = tk.StringVar()
-		self.atomDropDownName.set("Add PolyAtom")
+		self.atomDropDownName2 = tk.StringVar()
+		self.atomDropDownName2.set("Add PolyAtom")
 		self.options = {
 			"SO\u2084\u00B2\u207B": "SO4",
 			"HSO\u2084\u207B": "HSO4",
@@ -93,25 +101,20 @@ class Gui_Edit_Molecule():
 			"CO\u2083\u00B2\u207B": "CO3",
 			"C\u2082O\u2084\u207B\u00B2": "C2O4"
 		}
-		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
-		self.dropdown2.config(font = self.UIFont1)
-
-		# self.canvas = tk.Canvas(self.window, bg="white", width=900, height=600)		
+		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName2, *self.options, command=self.dropdown_select_option)
+		self.dropdown2.config(font = self.UIFont1)	
 		
 		# Intializes an empty list letters to store the Letters objects.
 		self.letters = []
-		
-		# binds the place_letter method to the canvas object to listen for mouse clicks on the canvas.
-		#self.canvas.bind("<Button-1>", self.place_letter)
 
 		# init for Input Field
-		self.Comment_Field = tk.Entry(width = 200, font = self.UIFont1)
+		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIEFPi)
 		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
 		# Initialize the buttons
-		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 50, 	font = self.UIFont1, command=self.create_single_bond)
-		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 50, 	font = self.UIFont1, command=self.create_double_bond)
-		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 50, 	font = self.UIFont1, command=self.create_triple_bond)
+		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_single_bond)
+		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_double_bond)
+		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 75, 	font = self.UIFont1, command=self.create_triple_bond)
 		self.btn_delete = 			tk.Button(text="Delete", 							font = self.UIFont1, command=self.activate_delete)
 		self.is_delete_active = False
 		self.btn_clear = 			tk.Button(text="Clear", 							font = self.UIFont1, command=self.clear)
@@ -125,7 +128,6 @@ class Gui_Edit_Molecule():
 		self.dropdown1.grid				(row = 0, column = 1, sticky = 'e')
 		self.dropdown2.grid				(row = 0, column = 2)
 		self.canvas.grid				(row = 1, column = 0, rowspan = 9, columnspan = 3)
-		self.Comment_Field.grid			(row = 10, column = 0)
 		self.btn_single_bond.grid		(row = 1, column = 3, sticky = 'nesw')
 		self.btn_double_bond.grid		(row = 2, column = 3, sticky = 'nesw')
 		self.btn_triple_bond.grid		(row = 3, column = 3, sticky = 'nesw')
@@ -135,6 +137,7 @@ class Gui_Edit_Molecule():
 		self.btn_translate_image.grid	(row = 7, column = 3, sticky = 'nesw')
 		self.btn_photo.grid				(row = 8, column = 3, sticky = 'nesw')
 		self.btn_quit.grid				(row = 9, column = 3, sticky = 'nesw')
+		self.Comment_Field.grid			(row = 10, column = 0)
 
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
 
@@ -144,15 +147,10 @@ class Gui_Edit_Molecule():
 		self.clear_line_creation()
 		self.Comment_Field.delete(0, "end")
 
-		#if self.tags == "poly":
-
 		try:
-			# option = FRONT_END_TO_BACKEND_POLYATOMIC["NH\u2084\u207A"]
 			option = CONSTANT.FRONT_END_TO_BACKEND_POLYATOMIC[option]
 		except KeyError:
 			None
-
-		
 
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
@@ -172,8 +170,11 @@ class Gui_Edit_Molecule():
 		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
 		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
 		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
-
-#/// --- NEED CHECK HERE TO CHANGE BACK THE DROPDOWN TO "Add Atom" or "Add PolyAtom"
+		# reset dropdowns once letter is placed
+		if self.atomDropDownName2:
+			self.atomDropDownName2.set("Add PolyAtom")
+		if self.atomDropDownName1:
+			self.atomDropDownName1.set("Add Atom")
 
 	def select_textbox(self, event):
 		self.selected = True
@@ -567,26 +568,26 @@ class Gui_Edit_Molecule():
 	def camera_capture(self):
 
 		"""
-		self.Comment_Field.delete(0, "end")
-		self.Comment_Field.insert(0, "Ready light on, press yellow button on camera module to start image capture")
+		camera.start_preview()
+		time.sleep(2)
 		GPIO.output(LED_GREEN_PIN, GPIO.HIGH)
 		BUTTON_PIN.wait_for_press()
 		GPIO.output(LED_GREEN_PIN, GPIO.LOW)
 
 		GPIO.output(LED_RED_PIN, GPIO.HIGH)
-		camera.start_preview()
-		time.sleep(5)
-		BUTTON_PIN.wait_for_press()
-		time.sleep(1)
-		camera.capture('/home/abissell/Desktop/Test.jpg')
+		time.sleep(2)
+		camera.capture('/home/abissell/Desktop/Github/OCRI/Test.jpg')
 		camera.stop_preview()
 		self.Comment_Field.delete(0, "end")
 		self.Comment_Field.insert(0, "Image Captured!")
 		GPIO.output(LED_RED_PIN, GPIO.LOW)
 
 		self.clear_canvas()
-		self.PILimage = Image.open('/home/abissell/Desktop/Test.jpg')
-		self.image_name = '/home/abissell/Desktop/Test.jpg'
+		self.temp = cv2.imread('/home/abissell/Desktop/Github/OCRI/Test.jpg')
+		self.temp = cv2.rotate(self.temp, cv2.ROTATE_90_CLOCKWISE)
+		cv2.imwrite('Test.jpg', self.temp)
+		self.PILimage = Image.open('/home/abissell/Desktop/Github/OCRI/Test.jpg')
+		self.image_name = '/home/abissell/Desktop/Github/OCRI/Test.jpg'
 
 		#resize image to fit in canvas
 		self.showImage()
@@ -602,6 +603,7 @@ class Gui_Edit_Molecule():
 			warning.destroy()
 			#GPIO.cleanup()
 			self.window.destroy()
+			exit()
 		def no():
 			warning.destroy()
 			self.enable_buttons()
@@ -652,6 +654,7 @@ class Gui_Edit_Molecule():
 		self.btn_import_file.configure(state = tk.NORMAL)
 		self.btn_photo.configure(state = tk.NORMAL)
 
+	#Functions to place recognized molecules into the canvas, and supporting functions
 	#https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
 	#efficient line segment intersect function
 	def ccw(self, A, B, C):
@@ -660,6 +663,36 @@ class Gui_Edit_Molecule():
 	# returns true if line segments AB and CD intersect
 	def linesIntersect(self, A, B, C, D):
 		return self.ccw(A,C,D) != self.ccw(B,C,D) and self.ccw(A,B,C) != self.ccw(A,B,D)
+	
+	#changes a numbers to subscripts, for polyatomics
+	def to_subscript(self, inputString):
+		
+		build_string = ""
+		for c in inputString:
+			if c == '0':
+				build_string += "\u2080"
+			elif c == '1':
+				build_string += "\u2081"
+			elif c == '2':
+				build_string += "\u2082"
+			elif c == '3':
+				build_string += "\u2083"
+			elif c == '4':
+				build_string += "\u2084"
+			elif c == '5':
+				build_string += "\u2085"
+			elif c == '6':
+				build_string += "\u2086"
+			elif c == '7':
+				build_string += "\u2087"
+			elif c == '8':
+				build_string += "\u2088"
+			elif c == '9':
+				build_string += "\u2089"
+			else:
+				build_string += c
+
+		return build_string
 
 	# places atoms from the graph into the canvas, only use for recognized images
 	def place_atoms_into_canvas(self):
@@ -688,7 +721,8 @@ class Gui_Edit_Molecule():
 				print(atom.get_type())
 				atomX = atomX * convertWidth
 				atomY = atomY * convertHeight
-				self.textbox = self.canvas.create_text(int(atomX), int(atomY), text=atom.get_type(), font=("Arial", 20), tags="letter")
+				TEXT = self.to_subscript(atom.get_type())
+				self.textbox = self.canvas.create_text(int(atomX), int(atomY), text=TEXT, font=("Arial", 20), tags="letter")
 				#rebind mouse to move letters
 				self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
 				self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
