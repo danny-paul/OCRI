@@ -602,6 +602,7 @@ class Gui_Edit_Molecule():
 			warning.destroy()
 			#GPIO.cleanup()
 			self.window.destroy()
+			exit()
 		def no():
 			warning.destroy()
 			self.enable_buttons()
@@ -652,6 +653,7 @@ class Gui_Edit_Molecule():
 		self.btn_import_file.configure(state = tk.NORMAL)
 		self.btn_photo.configure(state = tk.NORMAL)
 
+	#Functions to place recognized molecules into the canvas, and supporting functions
 	#https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
 	#efficient line segment intersect function
 	def ccw(self, A, B, C):
@@ -660,6 +662,36 @@ class Gui_Edit_Molecule():
 	# returns true if line segments AB and CD intersect
 	def linesIntersect(self, A, B, C, D):
 		return self.ccw(A,C,D) != self.ccw(B,C,D) and self.ccw(A,B,C) != self.ccw(A,B,D)
+	
+	#changes a numbers to subscripts, for polyatomics
+	def to_subscript(self, inputString):
+		
+		build_string = ""
+		for c in inputString:
+			if c == '0':
+				build_string += "\u2080"
+			elif c == '1':
+				build_string += "\u2081"
+			elif c == '2':
+				build_string += "\u2082"
+			elif c == '3':
+				build_string += "\u2083"
+			elif c == '4':
+				build_string += "\u2084"
+			elif c == '5':
+				build_string += "\u2085"
+			elif c == '6':
+				build_string += "\u2086"
+			elif c == '7':
+				build_string += "\u2087"
+			elif c == '8':
+				build_string += "\u2088"
+			elif c == '9':
+				build_string += "\u2089"
+			else:
+				build_string += c
+
+		return build_string
 
 	# places atoms from the graph into the canvas, only use for recognized images
 	def place_atoms_into_canvas(self):
@@ -688,7 +720,8 @@ class Gui_Edit_Molecule():
 				print(atom.get_type())
 				atomX = atomX * convertWidth
 				atomY = atomY * convertHeight
-				self.textbox = self.canvas.create_text(int(atomX), int(atomY), text=atom.get_type(), font=("Arial", 20), tags="letter")
+				TEXT = self.to_subscript(atom.get_type())
+				self.textbox = self.canvas.create_text(int(atomX), int(atomY), text=TEXT, font=("Arial", 20), tags="letter")
 				#rebind mouse to move letters
 				self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
 				self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)

@@ -60,6 +60,9 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	image = np.array(lessContrast)
 	image = image[:, :, ::-1].copy()
 
+	plt.imshow(image)
+	plt.show()
+
 	#apply some filters and crop image
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	cropped = gray[crop1:crop2, crop3:crop4]
@@ -72,8 +75,8 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	blurred = pureBlackWhite(blurred)
 	blurredCopy = blurred.copy()
 
-	#plt.imshow(blurred,cmap=cm.binary_r)
-	#plt.show()      #testing, show images used for recognition
+	plt.imshow(blurred,cmap=cm.binary_r)
+	plt.show()      #testing, show images used for recognition
 
 	#perform edge detection, find contours in the edge map, and sort the
 	#resulting contours from left-to-right
@@ -273,19 +276,21 @@ def modifyPreds(pred):
 	labelNames = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt"
 
 	i = np.argmax(pred)
+	pred[24] += pred[13]		#O is frequently recognized as D, so add that to O
+	pred[24] += pred[0]			#doing the same thing with 0 just in case
 
 	#table of characters to modify
 	pred[0] = 0                 #0
 	pred[1] = 0		            #1
-	pred[2] = pred[2]           #2
+	pred[2] = pred[2]           #2, 3, and 4 are the only common numbers
 	pred[3] = pred[3]           #3
 	pred[4] = pred[4]           #4
-	pred[5] = pred[5]           #5
-	pred[6] = pred[6]           #6
-	pred[7] = pred[7]           #7
-	pred[8] = pred[8]           #8
-	pred[9] = pred[9]           #9
-	pred[10] = pred[10]         #A
+	pred[5] = 0		            #5
+	pred[6] = 0		            #6
+	pred[7] = 0		            #7
+	pred[8] = 0		            #8
+	pred[9] = 0		            #9
+	pred[10] = 0	            #A
 	pred[11] = pred[11]         #B
 	pred[12] = pred[12]	+ .4   	#C  is common
 	pred[13] = 0                #D  not used
@@ -295,15 +300,15 @@ def modifyPreds(pred):
 	pred[17] = pred[17]	+ .4   	#H  is common
 	pred[18] = pred[18]         #I  used as 'i' and 'l'
 	pred[19] = 0                #J  not used
-	pred[20] = pred[20]         #K
-	pred[21] = pred[21]         #L
-	pred[22] = pred[22]         #M
+	pred[20] = 0	            #K
+	pred[21] = 0		        #L
+	pred[22] = 0	            #M
 	pred[23] = pred[23]	+ .4   	#N is common
-	pred[24] = pred[24]	+ .4	#O is common
+	pred[24] = pred[24]	* 25	#O is common, multiply because it sucks at recognizing O
 	pred[25] = pred[25]         #P
 	pred[26] = 0                #Q  not used
 	pred[27] = pred[27]         #R
-	pred[28] = pred[28]         #S
+	pred[28] = 0	            #S
 	pred[29] = 0                #T
 	pred[30] = 0                #U
 	pred[31] = 0                #V
@@ -311,17 +316,17 @@ def modifyPreds(pred):
 	pred[33] = 0                #X
 	pred[34] = 0                #Y
 	pred[35] = 0                #Z
-	pred[36] = pred[36]         #a
-	pred[37] = pred[37]         #b
+	pred[36] = 0	            #a
+	pred[37] = 0	            #b
 	pred[38] = 0                #d  not used
-	pred[39] = pred[39]         #e
+	pred[39] = 0   	            #e
 	pred[40] = 0                #f
-	pred[41] = pred[41]         #g
+	pred[41] = 0	            #g
 	pred[42] = 0                #h  not used
-	pred[43] = pred[43]         #n
+	pred[43] = 0	            #n
 	pred[44] = 0                #q  not used
 	pred[45] = pred[45]         #r
-	pred[46] = pred[46]         #t
+	pred[46] = 0	            #t
 
 	#these are the most common, so always allow them if they are the max value
 	if np.argmax(pred) == 12 and pred[12] > .50:		#C
@@ -330,8 +335,8 @@ def modifyPreds(pred):
 		pred[17] = pred[17] + 1
 	elif np.argmax(pred) == 23 and pred[23] > .50:		#N
 		pred[23] = pred[23] + 1
-	elif np.argmax(pred) == 24 and pred[24] > .42:		#O
-		pred[24] = pred[24] + 1
+	#elif np.argmax(pred) == 24 and pred[24] > .42:		#O
+		#pred[24] = pred[24] + 1
 
 	return pred
 
@@ -382,7 +387,7 @@ def pureBlackWhite(picture):
 	for i in range(w):
 		for j in range(h):
 			b, g, r = picture.getpixel((i, j))
-			if (r + b + g)/3 < avgColor - 10:
+			if (r + b + g)/3 < avgColor*0.95:
 				pixelMap[i, j] = (0, 0, 0)
 			else:
 				pixelMap[i, j] = (255, 255, 255)
