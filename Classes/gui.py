@@ -32,6 +32,10 @@ GPIO.setup(LED_RED_PIN, GPIO.OUT)
 GPIO.setup(LED_GREEN_PIN, GPIO.OUT)
 """
 
+# Geometry for popups
+popup_width = 300
+popup_height = 100
+
 # main class for the GUI application
 class Gui_Edit_Molecule():
 	def __init__(self, window: tk.Tk):
@@ -64,11 +68,11 @@ class Gui_Edit_Molecule():
 		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-50), height=(self.window.winfo_screenheight()-80))
 
 	# Full screen desktop
-		#self.window.attributes('-fullscreen',True)
-		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
+		self.window.attributes('-fullscreen',True)
+		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-100), height=(self.window.winfo_screenheight()-100))
 
 	# Test mode desktop
-		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-500), height=(self.window.winfo_screenheight()-500))
+		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-500), height=(self.window.winfo_screenheight()-500))
 ##########################################################################################################################################################################
 		#create dropdown menu for atoms
 		self.atomDropDownName1 = tk.StringVar()
@@ -295,23 +299,6 @@ class Gui_Edit_Molecule():
 		self.Comment_Field.delete(0, "end")
 		self.Comment_Field.insert(0, "Transfer image when ready or repeat cropping procedure")
 
-
-	def activate_delete(self):
-		self.is_delete_active = True
-		if self.canvas.find_all() == ():
-			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "No item to delete")
-		else:
-			self.disable_buttons()
-			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Select item to be deleted, deleting a bonded atom will remove the bond!")
-			
-			# Change cursor to indicate delete mode
-			self.canvas.config(cursor="crosshair")
-			
-			# Bind click events to handle deletion
-			self.canvas.bind('<ButtonPress-1>', self.delete_click)
-
 	# Command for the import button
 	def browseFiles(self):
 		if self.canvas.find_all() == ():
@@ -417,16 +404,23 @@ class Gui_Edit_Molecule():
 
 		popup = tk.Tk()
 		popup.title("Confirm")
+		# center the popup on the original canvas
+		widthp = popup.winfo_screenwidth()
+		heightp = popup.winfo_screenheight()
+		popupx = (widthp/2) - (popup_width/2)
+		popupy = (heightp/2) - (popup_height/2)
+		popup.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
 
 		button_accept = ttk.Button(popup, text = "Accept", command = accept)
-		button_accept.grid(row = 1, column = 2)
+		button_accept.pack()
 
 		button_crop = ttk.Button(popup, text = "Crop", command = crop)
-		button_crop.grid(row = 1, column = 1)
+		button_crop.pack()
 
 		button_cancel = ttk.Button(popup, text = "Cancel", command = cancel)
-		button_cancel.grid(row = 1, column = 3)
+		button_cancel.pack()
 
+		popup.protocol("WM_DELETE_WINDOW", cancel)
 		popup.mainloop()
 
 	# Clear canvas popup window, will ask if they want to clear the whole canvas or not
@@ -456,6 +450,12 @@ class Gui_Edit_Molecule():
 			
 			warning = tk.Tk()
 			warning.title("Warning")
+			# center the popup on the original canvas
+			widthp = warning.winfo_screenwidth()
+			heightp = warning.winfo_screenheight()
+			popupx = (widthp/2) - (popup_width/2)
+			popupy = (heightp/2) - (popup_height/2)
+			warning.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
 
 			warning_label = Label(warning, text = "Are you sure you want to delete all items?")
 			warning_label.pack()
@@ -466,6 +466,7 @@ class Gui_Edit_Molecule():
 			button_no = ttk.Button(warning, text = "No", command = no)
 			button_no.pack()
 
+			warning.protocol("WM_DELETE_WINDOW", no)
 			warning.mainloop()
 
 	# Popup for the file import button, will give the option to continue with the import and clear the screen or
@@ -491,8 +492,14 @@ class Gui_Edit_Molecule():
 		
 		warning = tk.Tk()
 		warning.title("Warning")
+		# center the popup on the original canvas
+		widthp = warning.winfo_screenwidth()
+		heightp = warning.winfo_screenheight()
+		popupx = (widthp/2) - (popup_width/2)
+		popupy = (heightp/2) - (popup_height/2)
+		warning.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
 
-		warning_label = Label(warning, text = "This action will clear workspace, are you sure you want to continue?")
+		warning_label = Label(warning, text = "This action will clear workspace, are you sure you want to continue?", wraplength = 200)
 		warning_label.pack()
 
 		button_yes = ttk.Button(warning, text = "Yes", command = yes)
@@ -501,6 +508,7 @@ class Gui_Edit_Molecule():
 		button_no = ttk.Button(warning, text = "No", command = no)
 		button_no.pack()
 
+		warning.protocol("WM_DELETE_WINDOW", no)
 		warning.mainloop()
 	
 	# Function for opening the file browser
@@ -551,10 +559,17 @@ class Gui_Edit_Molecule():
 			warning.destroy()
 			self.enable_buttons()
 		
+		
 		warning = tk.Tk()
 		warning.title("Warning")
+		# center the popup on the original canvas
+		widthp = warning.winfo_screenwidth()
+		heightp = warning.winfo_screenheight()
+		popupx = (widthp/2) - (popup_width/2)
+		popupy = (heightp/2) - (popup_height/2)
+		warning.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
 
-		warning_label = Label(warning, text = "This action will clear workspace, are you sure you want to continue?")
+		warning_label = Label(warning, text = "This action will clear workspace, are you sure you want to continue?", wraplength = 200)
 		warning_label.pack()
 
 		button_yes = ttk.Button(warning, text = "Yes", command = yes)
@@ -563,6 +578,7 @@ class Gui_Edit_Molecule():
 		button_no = ttk.Button(warning, text = "No", command = no)
 		button_no.pack()
 
+		warning.protocol("WM_DELETE_WINDOW", no)
 		warning.mainloop()
 
 	def camera_capture(self):
@@ -612,6 +628,12 @@ class Gui_Edit_Molecule():
 		
 		warning = tk.Tk()
 		warning.title("Quit")
+		# center the popup on the original canvas
+		widthp = warning.winfo_screenwidth()
+		heightp = warning.winfo_screenheight()
+		popupx = (widthp/2) - (popup_width/2)
+		popupy = (heightp/2) - (popup_height/2)
+		warning.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
 
 		warning_label = Label(warning, text = "Are you sure you want to quit OCRI?")
 		warning_label.pack()
@@ -622,9 +644,10 @@ class Gui_Edit_Molecule():
 		button_no = ttk.Button(warning, text = "No", command = no)
 		button_no.pack()
 
+		warning.protocol("WM_DELETE_WINDOW", no)
 		warning.mainloop()
 
-			
+
 	# Specific for the translate_image being disabled after it translates the image
 	def translate_enable_buttons(self):
 		self.btn_single_bond.configure(state = tk.NORMAL)
@@ -635,6 +658,7 @@ class Gui_Edit_Molecule():
 		self.btn_import_file.configure(state = tk.NORMAL)
 		self.btn_translate_image.configure(state = tk.DISABLED)
 		self.btn_photo.configure(state = tk.NORMAL)
+		self.btn_quit.configure(state = tk.NORMAL)
 
 	def disable_buttons(self):
 		self.btn_single_bond.configure(state = tk.DISABLED)
@@ -644,6 +668,7 @@ class Gui_Edit_Molecule():
 		self.btn_clear.configure(state = tk.DISABLED)
 		self.btn_import_file.configure(state = tk.DISABLED)
 		self.btn_photo.configure(state = tk.DISABLED)
+		self.btn_quit.configure(state = tk.DISABLED)
 
 	def enable_buttons(self):
 		self.btn_single_bond.configure(state = tk.NORMAL)
@@ -653,6 +678,7 @@ class Gui_Edit_Molecule():
 		self.btn_clear.configure(state = tk.NORMAL)
 		self.btn_import_file.configure(state = tk.NORMAL)
 		self.btn_photo.configure(state = tk.NORMAL)
+		self.btn_quit.configure(state = tk.NORMAL)
 
 	#Functions to place recognized molecules into the canvas, and supporting functions
 	#https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
@@ -939,11 +965,36 @@ class Gui_Edit_Molecule():
 		
 ######################################################   DELETE BUTTON  #####################################################
 
+
+	def activate_delete(self):
+		if self.is_delete_active == False:
+			self.is_delete_active = True
+		else:
+			self.is_delete_active = False
+
+		if self.canvas.find_all() == ():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "No item to delete")
+		else:
+			if self.is_delete_active == True:
+				self.disable_buttons()
+				self.btn_delete.configure(state = tk.NORMAL)
+				self.Comment_Field.delete(0, "end")
+				self.Comment_Field.insert(0, "Select an item to be deleted, deleting a bonded atom will remove the bond! To exit delete press the delete button again.")
+				
+				# Change cursor to indicate delete mode
+				self.canvas.config(cursor="crosshair")
+				
+				# Bind click events to handle deletion
+				self.canvas.bind('<ButtonPress-1>', self.delete_click)
+			else:
+				self.deactivate_delete()
+
 	def deactivate_delete(self):
-		self.is_delete_active = False
 		
 		# Reset cursor to default
 		self.canvas.config(cursor="arrow")
+		self.enable_buttons()
 		
 		# Unbind click events for deletion
 		self.canvas.unbind('<ButtonPress-1>')
@@ -951,7 +1002,6 @@ class Gui_Edit_Molecule():
 	def delete_click(self, event):
 		# find closest x and y value that has an object
 		item = self.canvas.find_closest(event.x, event.y)[0]
-		self.enable_buttons()
 		self.Comment_Field.delete(0, "end")
 		self.Comment_Field.insert(0, "Item Deleted")
 		
@@ -1017,8 +1067,11 @@ class Gui_Edit_Molecule():
 					break
 
 		print(self.graph)
-				
-		self.deactivate_delete()
+		if self.canvas.find_all() == ():
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Last item deleted!")
+			self.is_delete_active = False
+			self.deactivate_delete()
 
 	#clear the canvas and arrays
 	def clear_canvas(self):
