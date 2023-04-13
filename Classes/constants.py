@@ -146,8 +146,8 @@ FRONT_END_TO_BACKEND_POLYATOMIC = {
 		"PO\u2083\u207B\u00B3": "PO3",
 		"OH\u207B": "OH",
 		"ClO\u2084\u207B": "ClO4",
-		"ClO\u2083\u207B": "Cl03",
-		"ClO\u2082\u207B": "Cl02",
+		"ClO\u2083\u207B": "ClO3",
+		"ClO\u2082\u207B": "ClO2",
 		"\u207BOCl": "OCl",
 		"CN\u207B": "CN",
 		"\u207BOCN": "OCN", 
@@ -165,8 +165,8 @@ POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES = {
 		"PO\u2084\u207B\u00B3": "PO\u2084",
 		"HPO\u2084\u00B2\u207B": "HPO\u2084",
 		"H\u2082PO\u2084\u207B": "H\u2082PO\u2084",
-		"PO\u2083\u207B\u00B3": "PO\u2083\u00B3",
-		"OH\u207B": "OH\u207B",
+		"PO\u2083\u207B\u00B3": "PO\u2083",
+		"OH\u207B": "OH",
 		"ClO\u2084\u207B": "ClO\u2084",
 		"ClO\u2083\u207B": "ClO\u2083",
 		"ClO\u2082\u207B": "ClO\u2082",
@@ -177,3 +177,9 @@ POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES = {
 		"CO\u2083\u00B2\u207B": "CO\u2083",
 		"C\u2082O\u2084\u207B\u00B2": "C\u2082O\u2084"
 }
+#CO3--> bonding doesnt track, but does move
+#ClO3--> bonding & doesnt move
+#C2O4--> bonding but does move
+
+
+#ClO2 --> bonding and does not move
