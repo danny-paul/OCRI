@@ -4,6 +4,8 @@ import math
 from tkinter import NORMAL, font, Label, Toplevel, filedialog as fido
 from tkinter import ttk # duplicate
 from PIL import Image, ImageTk
+import cv2
+import os
 from Classes.graph import Graph
 from Classes.bonds import Bond
 from Classes.bonds import CovalentBond
@@ -50,6 +52,7 @@ class Gui_Edit_Molecule():
 		
 		# Fonts for the UI
 		self.UIFont1 = font.Font(family = 'Ariel', size = 12)
+		self.UIEFPi = font.Font(family = 'Ariel', size = 9)
 
 		# create the frame for the GUI
 		self.window = window
@@ -68,15 +71,15 @@ class Gui_Edit_Molecule():
 		self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-500), height=(self.window.winfo_screenheight()-500))
 ##########################################################################################################################################################################
 		#create dropdown menu for atoms
-		self.atomDropDownName = tk.StringVar()
-		self.atomDropDownName.set("Add Atom")
+		self.atomDropDownName1 = tk.StringVar()
+		self.atomDropDownName1.set("Add Atom")
 		self.options = ["H", "C", "B", "N", "O", "F", "Si", "P", "S", "Cl", "Br"]
-		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown1 = tk.OptionMenu(self.window, self.atomDropDownName1, *self.options, command=self.dropdown_select_option)
 		self.dropdown1.config(font = self.UIFont1)
 		
 		# create dropdown menu for adding polyatomic atoms
-		self.atomDropDownName = tk.StringVar()
-		self.atomDropDownName.set("Add PolyAtom")
+		self.atomDropDownName2 = tk.StringVar()
+		self.atomDropDownName2.set("Add PolyAtom")
 		self.options = {
 			"SO\u2084\u00B2\u207B": "SO4",
 			"HSO\u2084\u207B": "HSO4",
@@ -98,14 +101,14 @@ class Gui_Edit_Molecule():
 			"CO\u2083\u00B2\u207B": "CO3",
 			"C\u2082O\u2084\u207B\u00B2": "C2O4"
 		}
-		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName, *self.options, command=self.dropdown_select_option)
+		self.dropdown2 = tk.OptionMenu(self.window, self.atomDropDownName2, *self.options, command=self.dropdown_select_option)
 		self.dropdown2.config(font = self.UIFont1)	
 		
 		# Intializes an empty list letters to store the Letters objects.
 		self.letters = []
 
 		# init for Input Field
-		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIFont1)
+		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIEFPi)
 		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
 		# Initialize the buttons
@@ -144,15 +147,10 @@ class Gui_Edit_Molecule():
 		self.clear_line_creation()
 		self.Comment_Field.delete(0, "end")
 
-		#if self.tags == "poly":
-
 		try:
-			# option = FRONT_END_TO_BACKEND_POLYATOMIC["NH\u2084\u207A"]
 			option = CONSTANT.FRONT_END_TO_BACKEND_POLYATOMIC[option]
 		except KeyError:
 			None
-
-		
 
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
@@ -172,8 +170,11 @@ class Gui_Edit_Molecule():
 		self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
 		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
 		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
-
-#/// --- NEED CHECK HERE TO CHANGE BACK THE DROPDOWN TO "Add Atom" or "Add PolyAtom"
+		# reset dropdowns once letter is placed
+		if self.atomDropDownName2:
+			self.atomDropDownName2.set("Add PolyAtom")
+		if self.atomDropDownName1:
+			self.atomDropDownName1.set("Add Atom")
 
 	def select_textbox(self, event):
 		self.selected = True
@@ -567,26 +568,26 @@ class Gui_Edit_Molecule():
 	def camera_capture(self):
 
 		"""
-		self.Comment_Field.delete(0, "end")
-		self.Comment_Field.insert(0, "Ready light on, press yellow button on camera module to start image capture")
+		camera.start_preview()
+		time.sleep(2)
 		GPIO.output(LED_GREEN_PIN, GPIO.HIGH)
 		BUTTON_PIN.wait_for_press()
 		GPIO.output(LED_GREEN_PIN, GPIO.LOW)
 
 		GPIO.output(LED_RED_PIN, GPIO.HIGH)
-		camera.start_preview()
-		time.sleep(5)
-		BUTTON_PIN.wait_for_press()
-		time.sleep(1)
-		camera.capture('/home/abissell/Desktop/Test.jpg')
+		time.sleep(2)
+		camera.capture('/home/abissell/Desktop/Github/OCRI/Test.jpg')
 		camera.stop_preview()
 		self.Comment_Field.delete(0, "end")
 		self.Comment_Field.insert(0, "Image Captured!")
 		GPIO.output(LED_RED_PIN, GPIO.LOW)
 
 		self.clear_canvas()
-		self.PILimage = Image.open('/home/abissell/Desktop/Test.jpg')
-		self.image_name = '/home/abissell/Desktop/Test.jpg'
+		self.temp = cv2.imread('/home/abissell/Desktop/Github/OCRI/Test.jpg')
+		self.temp = cv2.rotate(self.temp, cv2.ROTATE_90_CLOCKWISE)
+		cv2.imwrite('Test.jpg', self.temp)
+		self.PILimage = Image.open('/home/abissell/Desktop/Github/OCRI/Test.jpg')
+		self.image_name = '/home/abissell/Desktop/Github/OCRI/Test.jpg'
 
 		#resize image to fit in canvas
 		self.showImage()
