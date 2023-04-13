@@ -52,6 +52,7 @@ class Gui_Edit_Molecule():
 		
 		# Fonts for the UI
 		self.UIFont1 = font.Font(family = 'Ariel', size = 12)
+		self.UIEFPi = font.Font(family = 'Ariel', size = 9)
 
 		# create the frame for the GUI
 		self.window = window
@@ -107,7 +108,7 @@ class Gui_Edit_Molecule():
 		self.letters = []
 
 		# init for Input Field
-		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIFont1)
+		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIEFPi)
 		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
 		# Initialize the buttons
@@ -567,30 +568,26 @@ class Gui_Edit_Molecule():
 	def camera_capture(self):
 
 		"""
-		self.Comment_Field.delete(0, "end")
-		self.Comment_Field.insert(0, "Ready light on, press yellow button on camera module to start image capture")
+		camera.start_preview()
+		time.sleep(2)
 		GPIO.output(LED_GREEN_PIN, GPIO.HIGH)
 		BUTTON_PIN.wait_for_press()
 		GPIO.output(LED_GREEN_PIN, GPIO.LOW)
 
 		GPIO.output(LED_RED_PIN, GPIO.HIGH)
-		camera.start_preview()
-		time.sleep(5)
-		BUTTON_PIN.wait_for_press()
-		time.sleep(1)
-		camera.capture('/home/abissell/Desktop/Test.jpg')
+		time.sleep(2)
+		camera.capture('/home/abissell/Desktop/Github/OCRI/Test.jpg')
 		camera.stop_preview()
 		self.Comment_Field.delete(0, "end")
 		self.Comment_Field.insert(0, "Image Captured!")
 		GPIO.output(LED_RED_PIN, GPIO.LOW)
 
 		self.clear_canvas()
-		os.chdir('/home/abissell/Desktop/')
-		self.temp = cv2.imread('/home/abissell/Desktop/Test.jpg')
+		self.temp = cv2.imread('/home/abissell/Desktop/Github/OCRI/Test.jpg')
 		self.temp = cv2.rotate(self.temp, cv2.ROTATE_90_CLOCKWISE)
 		cv2.imwrite('Test.jpg', self.temp)
-		self.PILimage = Image.open('/home/abissell/Desktop/Test.jpg')
-		self.image_name = '/home/abissell/Desktop/Test.jpg'
+		self.PILimage = Image.open('/home/abissell/Desktop/Github/OCRI/Test.jpg')
+		self.image_name = '/home/abissell/Desktop/Github/OCRI/Test.jpg'
 
 		#resize image to fit in canvas
 		self.showImage()
