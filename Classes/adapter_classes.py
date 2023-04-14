@@ -169,7 +169,7 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 	for node in mapped_node_arr:
 		if (Atom.is_atom(node.type_is) or Atom.is_polyatomic(node.type_is)):
 			# Node is single atom or polyatomic (treated as one atom)
-
+			
 			atom_to_map = Atom(node.type_is)
 			atom_to_map.set_mapped_position((node.top_left_x+node.bottom_right_x)/2, (node.top_left_y+node.bottom_right_y)/2)
 			unbound_atoms.append(atom_to_map)

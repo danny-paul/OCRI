@@ -282,9 +282,9 @@ def modifyPreds(pred):
 	#table of characters to modify
 	pred[0] = 0                 #0
 	pred[1] = 0		            #1
-	pred[2] = pred[2]           #2, 3, and 4 are the only common numbers
-	pred[3] = pred[3]           #3
-	pred[4] = pred[4]           #4
+	pred[2] = pred[2] + .30     #2, 3, and 4 are the only common numbers
+	pred[3] = pred[3] + .30     #3
+	pred[4] = pred[4] + .30     #4
 	pred[5] = 0		            #5
 	pred[6] = 0		            #6
 	pred[7] = 0		            #7
@@ -292,22 +292,22 @@ def modifyPreds(pred):
 	pred[9] = 0		            #9
 	pred[10] = 0	            #A
 	pred[11] = pred[11]         #B
-	pred[12] = pred[12]	+ .4   	#C  is common
+	pred[12] = pred[12]	+ .2   	#C  is common
 	pred[13] = 0                #D  not used
 	pred[14] = 0                #E  not used
 	pred[15] = pred[15]         #F
 	pred[16] = 0                #G  not used
-	pred[17] = pred[17]	+ .4   	#H  is common
+	pred[17] = pred[17]	+ .2   	#H  is common
 	pred[18] = pred[18]         #I  used as 'i' and 'l'
 	pred[19] = 0                #J  not used
 	pred[20] = 0	            #K
 	pred[21] = 0		        #L
 	pred[22] = 0	            #M
-	pred[23] = pred[23]	+ .4   	#N is common
-	pred[24] = pred[24]	* 25	#O is common, multiply because it sucks at recognizing O
+	pred[23] = pred[23]	+ .2   	#N is common
+	pred[24] = pred[24]	+ .2	#O is common, multiply because it sucks at recognizing O
 	pred[25] = pred[25]         #P
 	pred[26] = 0                #Q  not used
-	pred[27] = pred[27]         #R
+	pred[27] = 0	            #R
 	pred[28] = 0	            #S
 	pred[29] = 0                #T
 	pred[30] = 0                #U
@@ -329,14 +329,14 @@ def modifyPreds(pred):
 	pred[46] = 0	            #t
 
 	#these are the most common, so always allow them if they are the max value
-	if np.argmax(pred) == 12 and pred[12] > .50:		#C
+	if np.argmax(pred) == 12 and pred[12] > .30:		#C
 		pred[12] = pred[12] + 1
-	elif np.argmax(pred) == 17 and pred[17] > .50:		#H
+	elif np.argmax(pred) == 17 and pred[17] > .30:		#H
 		pred[17] = pred[17] + 1
-	elif np.argmax(pred) == 23 and pred[23] > .50:		#N
+	elif np.argmax(pred) == 23 and pred[23] > .30:		#N
 		pred[23] = pred[23] + 1
-	#elif np.argmax(pred) == 24 and pred[24] > .42:		#O
-		#pred[24] = pred[24] + 1
+	elif np.argmax(pred) == 24 and pred[24] > .22:		#O
+		pred[24] = pred[24] + 1
 
 	return pred
 
@@ -686,6 +686,10 @@ def filterLetterBoxes(letterBoxes):
 	#this shouldn't affect polyatomics
 	acceptableCharacters = CONSTANT.ATOM_SYMBOL_TO_NAME_DICT.keys()
 
+	for box in letterBoxes:
+		a, b, c, d, e = box
+		print(e)
+
 	newLetterBoxes = []
 	for letterBox in letterBoxes:
 		x, y, w, h, label = letterBox
@@ -749,6 +753,8 @@ def filterLetterBoxes(letterBoxes):
 				break
 		label = newLabel
 
+		print(label)
+
 		newLabel = ""
 		#only keep elements in the acceptable characters list
 		for i in range(len(label)):
@@ -764,10 +770,19 @@ def filterLetterBoxes(letterBoxes):
 			#if it isn't a two character element, check if its a 1 character element
 			elif label[i] in acceptableCharacters:
 				newLabel += label[i]
-			if i >= len(label):
+			#always add numbers, they have already been filtered
+			elif label[i].isnumeric():
+				newLabel += label[i]
+			if i >= len(label):			#we are modifying i, so manually exit loop
 				break
 		label = newLabel
-		newLetterBoxes.append((x, y, w, h, label))
+
+		#only keep the letterbox if it isn't empty
+		if(len(label) > 0):
+			newLetterBoxes.append((x, y, w, h, label))
+
+	
+	print("New Letter Boxes: ", newLetterBoxes)
 	
 	return newLetterBoxes
 
