@@ -116,14 +116,15 @@ class Gui_Edit_Molecule():
 		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
 		# Initialize the buttons
-		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_single_bond)
-		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_double_bond)
-		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 75, 	font = self.UIFont1, command=self.create_triple_bond)
-		self.btn_delete = 			tk.Button(text="Delete", 							font = self.UIFont1, command=self.activate_delete)
+		self.btn_single_bond =		tk.Button(text="Single Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_single_bond, state = tk.DISABLED)
+		self.btn_double_bond = 		tk.Button(text="Double Bond", 	wraplength = 75, 	font = self.UIFont1, command=self.create_double_bond, state = tk.DISABLED)
+		self.btn_triple_bond = 		tk.Button(text="Triple Bond",	wraplength = 75, 	font = self.UIFont1, command=self.create_triple_bond, state = tk.DISABLED)
+		self.is_bond_active = False
+		self.btn_delete = 			tk.Button(text="Delete", 							font = self.UIFont1, command=self.activate_delete	, state = tk.DISABLED)
 		self.is_delete_active = False
-		self.btn_clear = 			tk.Button(text="Clear", 							font = self.UIFont1, command=self.clear)
+		self.btn_clear = 			tk.Button(text="Clear", 							font = self.UIFont1, command=self.clear				, state = tk.DISABLED)
 		self.btn_import_file = 		tk.Button(text="Import", 							font = self.UIFont1, command=self.browseFiles)
-		self.btn_translate_image = 	tk.Button(text="Translate Image",wraplength = 75,	font = self.UIFont1, command=self.send_image, state = tk.DISABLED)
+		self.btn_translate_image = 	tk.Button(text="Translate Image",wraplength = 75,	font = self.UIFont1, command=self.send_image		, state = tk.DISABLED)
 		self.btn_photo = 			tk.Button(text="Photo", 							font = self.UIFont1, command=self.capture_check)
 		self.btn_quit = 			tk.Button(text="Exit", 								font = self.UIFont1, command=self.exit_ocri)
 		
@@ -153,6 +154,8 @@ class Gui_Edit_Molecule():
 
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
+		if self.canvas.find_all() == ():
+			self.canvas_cleared()
 	
 	#place a letter on the canvas
 	def place_letter(self, event):
@@ -191,6 +194,7 @@ class Gui_Edit_Molecule():
 			self.atomDropDownName2.set("Add PolyAtom")
 		if self.atomDropDownName1:
 			self.atomDropDownName1.set("Add Atom")
+		self.enable_buttons()
 
 	def select_textbox(self, event):
 		self.selected = True
@@ -333,7 +337,7 @@ class Gui_Edit_Molecule():
 	# Command for translate image button
 	def send_image(self):
 		self.Comment_Field.delete(0, "end")
-		self.Comment_Field.insert(0, "Image Transfered to Recognizer")
+		self.Comment_Field.insert(0, "Image transferred to recognizer")
 
 		#calculate crop dimensions
 		imageWidth, imageHeight = self.PILimage.size
@@ -391,8 +395,9 @@ class Gui_Edit_Molecule():
 
 		def accept():
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Image Accepted, please translate image")
+			self.Comment_Field.insert(0, "Image accepted, please translate image")
 			self.btn_translate_image.configure(state = tk.NORMAL)
+			self.btn_quit.configure(state = tk.NORMAL)
 			popup.destroy()
 			#set crop to maximum bounds
 			self.cropX = 0		#undercrop will be set to zero in the recognizer
@@ -402,14 +407,15 @@ class Gui_Edit_Molecule():
 
 		def crop():
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Crop Image by holding down the left mouse button and dragging, release when the black rectangle is around what you want to be translated")
+			self.Comment_Field.insert(0, "Crop image by holding down the left mouse button and dragging, release when the black rectangle is around what you want to be translated")
 			self.btn_translate_image.configure(state = tk.NORMAL)
+			self.btn_quit.configure(state = tk.NORMAL)
 			popup.destroy()
 			self.drawrectangle()
 
 		def cancel():
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Import Canceled")
+			self.Comment_Field.insert(0, "Import canceled")
 			self.translate_enable_buttons()
 			popup.destroy()
 			self.canvas.delete("all")
@@ -437,49 +443,46 @@ class Gui_Edit_Molecule():
 
 	# Clear canvas popup window, will ask if they want to clear the whole canvas or not
 	def clear(self):
-		if self.canvas.find_all() == ():
+		self.disable_buttons()
+		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Warning: Popup window deployed!")
+
+		def yes():
+			self.canvas.delete("all")
+			warning.destroy()
+			self.enable_buttons()
+			self.canvas_cleared()
+
+			self.empty_properties()
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Canvas is already cleared!")
-		else:
-			self.disable_buttons()
+			self.Comment_Field.insert(0, "Canvas cleared")
+
+		def no():
+			warning.destroy()
+			self.enable_buttons()
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Warning: Popup window deployed!")
+			self.Comment_Field.insert(0, "Clear canceled")
+		
+		warning = tk.Tk()
+		warning.title("Warning")
+		# center the popup on the original canvas
+		widthp = warning.winfo_screenwidth()
+		heightp = warning.winfo_screenheight()
+		popupx = (widthp/2) - (popup_width/2)
+		popupy = (heightp/2) - (popup_height/2)
+		warning.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
 
-			def yes():
-				self.canvas.delete("all")
-				warning.destroy()
-				self.enable_buttons()
+		warning_label = Label(warning, text = "Are you sure you want to delete all items?")
+		warning_label.pack()
 
-				self.empty_properties()
-				self.Comment_Field.delete(0, "end")
-				self.Comment_Field.insert(0, "Canvas cleared")
+		button_yes = ttk.Button(warning, text = "Yes", command = yes)
+		button_yes.pack()
 
-			def no():
-				warning.destroy()
-				self.enable_buttons()
-				self.Comment_Field.delete(0, "end")
-				self.Comment_Field.insert(0, "Clear canceled")
-			
-			warning = tk.Tk()
-			warning.title("Warning")
-			# center the popup on the original canvas
-			widthp = warning.winfo_screenwidth()
-			heightp = warning.winfo_screenheight()
-			popupx = (widthp/2) - (popup_width/2)
-			popupy = (heightp/2) - (popup_height/2)
-			warning.geometry('%dx%d+%d+%d' % (popup_width, popup_height, popupx, popupy))
+		button_no = ttk.Button(warning, text = "No", command = no)
+		button_no.pack()
 
-			warning_label = Label(warning, text = "Are you sure you want to delete all items?")
-			warning_label.pack()
-
-			button_yes = ttk.Button(warning, text = "Yes", command = yes)
-			button_yes.pack()
-
-			button_no = ttk.Button(warning, text = "No", command = no)
-			button_no.pack()
-
-			warning.protocol("WM_DELETE_WINDOW", no)
-			warning.mainloop()
+		warning.protocol("WM_DELETE_WINDOW", no)
+		warning.mainloop()
 
 	# Popup for the file import button, will give the option to continue with the import and clear the screen or
 	# cancel the import and keep what is on the canvas
@@ -671,6 +674,8 @@ class Gui_Edit_Molecule():
 		self.btn_translate_image.configure(state = tk.DISABLED)
 		self.btn_photo.configure(state = tk.NORMAL)
 		self.btn_quit.configure(state = tk.NORMAL)
+		self.dropdown1.configure(state = tk.NORMAL)
+		self.dropdown2.configure(state = tk.NORMAL)
 
 	def disable_buttons(self):
 		self.btn_single_bond.configure(state = tk.DISABLED)
@@ -681,6 +686,8 @@ class Gui_Edit_Molecule():
 		self.btn_import_file.configure(state = tk.DISABLED)
 		self.btn_photo.configure(state = tk.DISABLED)
 		self.btn_quit.configure(state = tk.DISABLED)
+		self.dropdown1.configure(state = tk.DISABLED)
+		self.dropdown2.configure(state = tk.DISABLED)
 
 	def enable_buttons(self):
 		self.btn_single_bond.configure(state = tk.NORMAL)
@@ -691,6 +698,15 @@ class Gui_Edit_Molecule():
 		self.btn_import_file.configure(state = tk.NORMAL)
 		self.btn_photo.configure(state = tk.NORMAL)
 		self.btn_quit.configure(state = tk.NORMAL)
+		self.dropdown1.configure(state = tk.NORMAL)
+		self.dropdown2.configure(state = tk.NORMAL)
+
+	def canvas_cleared(self):
+		self.btn_clear.configure(state = tk.DISABLED)
+		self.btn_delete.configure(state = tk.DISABLED)
+		self.btn_single_bond.configure(state = tk.DISABLED)
+		self.btn_double_bond.configure(state = tk.DISABLED)
+		self.btn_triple_bond.configure(state = tk.DISABLED)
 
 	#Functions to place recognized molecules into the canvas, and supporting functions
 	#https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
@@ -979,28 +995,20 @@ class Gui_Edit_Molecule():
 
 
 	def activate_delete(self):
-		if self.is_delete_active == False:
-			self.is_delete_active = True
-		else:
-			self.is_delete_active = False
-
-		if self.canvas.find_all() == ():
+		self.is_delete_active = not self.is_delete_active
+		if self.is_delete_active == True:
+			self.disable_buttons()
+			self.btn_delete.configure(state = tk.NORMAL)
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "No item to delete")
+			self.Comment_Field.insert(0, "Select an item to be deleted, deleting a bonded atom will remove the bond! To exit delete press the delete button again")
+			
+			# Change cursor to indicate delete mode
+			self.canvas.config(cursor="crosshair")
+			
+			# Bind click events to handle deletion
+			self.canvas.bind('<ButtonPress-1>', self.delete_click)
 		else:
-			if self.is_delete_active == True:
-				self.disable_buttons()
-				self.btn_delete.configure(state = tk.NORMAL)
-				self.Comment_Field.delete(0, "end")
-				self.Comment_Field.insert(0, "Select an item to be deleted, deleting a bonded atom will remove the bond! To exit delete press the delete button again.")
-				
-				# Change cursor to indicate delete mode
-				self.canvas.config(cursor="crosshair")
-				
-				# Bind click events to handle deletion
-				self.canvas.bind('<ButtonPress-1>', self.delete_click)
-			else:
-				self.deactivate_delete()
+			self.deactivate_delete()
 
 	def deactivate_delete(self):
 		
@@ -1015,7 +1023,7 @@ class Gui_Edit_Molecule():
 		# find closest x and y value that has an object
 		item = self.canvas.find_closest(event.x, event.y)[0]
 		self.Comment_Field.delete(0, "end")
-		self.Comment_Field.insert(0, "Item Deleted")
+		self.Comment_Field.insert(0, "Item deleted")
 		
 		# Check if item is a letter or bond object, delete that item, and return cursor back to normal.
 		#if self.canvas.type(item) in ["text", "line"]:
@@ -1081,9 +1089,10 @@ class Gui_Edit_Molecule():
 		print(self.graph)
 		if self.canvas.find_all() == ():
 			self.Comment_Field.delete(0, "end")
-			self.Comment_Field.insert(0, "Last item deleted!")
+			self.Comment_Field.insert(0, "Last item deleted, returning to regular functionality")
 			self.is_delete_active = False
 			self.deactivate_delete()
+			self.canvas_cleared()
 
 	#clear the canvas and arrays
 	def clear_canvas(self):
@@ -1110,19 +1119,37 @@ class Gui_Edit_Molecule():
 	# Single, Double, and TripleBondCreator object if one doesn't already exist. or if the current
 	# SingleBondCreator object is already being used to create a bond.
 	def create_single_bond(self):
-		self.bond_type = 1
-		self.create_bond()
-			
+		self.is_bond_active = not self.is_bond_active
+		if self.is_bond_active == True:
+			self.bond_type = 1
+			self.create_bond()
+		else:
+			self.clear_line_creation()
+	
 	def create_double_bond(self):
-		self.bond_type = 2
-		self.create_bond()
+		self.is_bond_active = not self.is_bond_active
+		if self.is_bond_active == True:
+			self.bond_type = 2
+			self.create_bond()
+		else:
+			self.clear_line_creation()
 			
 	def create_triple_bond(self):
-		self.bond_type = 3
-		self.create_bond()
+		self.is_bond_active = not self.is_bond_active
+		if self.is_bond_active == True:
+			self.bond_type = 3
+			self.create_bond()
+		else:
+			self.clear_line_creation()
 
 	def create_bond(self):
 		self.disable_buttons()
+		if self.bond_type == 1:
+			self.btn_single_bond.configure(state = tk.NORMAL)
+		elif self.bond_type == 2:
+			self.btn_double_bond.configure(state = tk.NORMAL)
+		elif self.bond_type == 3:
+			self.btn_triple_bond.configure(state = tk.NORMAL)
 		self.lineStart = None
 		self.startConnected = False
 		self.lineEnd = None
@@ -1132,7 +1159,7 @@ class Gui_Edit_Molecule():
 		self.startLetter = -1
 		self.endLetter = -1
 		self.Comment_Field.delete(0, "end") # clears for potential bond errors
-		self.Comment_Field.insert(0, "Select Two Atoms to Make Bond")
+		self.Comment_Field.insert(0, "Select two atoms to make bond, select the appropriate bond button to exit bonding")
 
 	# Checks if line instance is None. If it is, it sets "start" to the current mouse position (event.x, event.y).
 	# If it isn't, it sets "end" to the current mouse position and creates a new Bond object using
@@ -1158,9 +1185,10 @@ class Gui_Edit_Molecule():
 						break
 				if point_x == -1 and point_y == -1:
 					self.Comment_Field.delete(0, "end")
-					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over and select two atoms")
+					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over, and select two atoms")
 
 					# clear when second click occurs (regardless of success or failure)
+					self.is_bond_active = False
 					self.clear_line_creation()
 				else:
 					# set start coordinates for bond
@@ -1186,7 +1214,8 @@ class Gui_Edit_Molecule():
 
 				if (point_x == -1 and point_y == -1 ):
 					self.Comment_Field.delete(0, "end")
-					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over and select two atoms")
+					self.Comment_Field.insert(0, "Error: Each bond must be bound to two atoms, please start over, and select two atoms")
+					self.is_bond_active = False
 				else:
 					# atom is bound to both
 					self.lineEnd = (point_x, point_y)
@@ -1242,7 +1271,7 @@ class Gui_Edit_Molecule():
 								print("within condiional")
 								# remove (possible) error messaages that are present
 								self.Comment_Field.delete(0, "end")
-								self.Comment_Field.insert(0, "Bond Created!")
+								self.Comment_Field.insert(0, "Bond created")
 
 								if self.bond_type == 1:
 
@@ -1303,6 +1332,7 @@ class Gui_Edit_Molecule():
 							self.Comment_Field.delete(0, "end")
 							self.Comment_Field.insert(0, err)
 							AddLine = False
+							self.is_bond_active = False
 				
 				# clear when second click occurs (regardless of success or failure)
 				self.clear_line_creation()
@@ -1326,22 +1356,22 @@ class Gui_Edit_Molecule():
 				print('structure of each bond group')
 				for index, value in enumerate(self.tripleBonds):
 					print('index[', str(index), ']: ', str(self.tripleBonds[index]))
-				
-		self.enable_buttons()
 		
 	# resets line creation
 	def clear_line_creation(self):
-		# clear when second click occurs (regardless of success or failure)
-		self.startLetter = -1
-		self.endLetter = -1
-		self.startConnected = False
-		self.endConnected = False
-		self.line_instance = 1
-		
-		self.start = None
-		self.end = None
-
-		self.enable_buttons()
+		if self.is_bond_active == False:
+			# clear when second click occurs (regardless of success or failure)
+			self.startLetter = -1
+			self.endLetter = -1
+			self.startConnected = False
+			self.endConnected = False
+			self.line_instance = 1
+			
+			self.start = None
+			self.end = None
+			self.enable_buttons()
+		else:
+			self.create_bond()
 	
 	def empty_properties(self):
 			# empty properties 
