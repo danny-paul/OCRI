@@ -65,7 +65,7 @@ class Gui_Edit_Molecule():
 ##################################################   Formatting for full screen Pi, full screen desktop, and test mode    ##################################################
 	# Rapsberry Pi Fullscreen mode
 		#self.window.geometry("800x480")
-		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-50), height=(self.window.winfo_screenheight()-80))
+		#self.canvas = tk.Canvas(self.window, bg="white", width=(self.window.winfo_screenwidth()-112), height=(self.window.winfo_screenheight()-80))
 
 	# Full screen desktop
 		self.window.attributes('-fullscreen',True)
@@ -112,7 +112,7 @@ class Gui_Edit_Molecule():
 		self.letters = []
 
 		# init for Input Field
-		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/11)-3), font = self.UIEFPi)
+		self.Comment_Field = tk.Entry(width = int((self.window.winfo_screenwidth()/8)-10), font = self.UIEFPi)
 		self.Comment_Field.insert(0, "Welcome to OCRI!")
 
 		# Initialize the buttons
@@ -142,7 +142,7 @@ class Gui_Edit_Molecule():
 		self.btn_translate_image.grid	(row = 7, column = 3, sticky = 'nesw')
 		self.btn_photo.grid				(row = 8, column = 3, sticky = 'nesw')
 		self.btn_quit.grid				(row = 9, column = 3, sticky = 'nesw')
-		self.Comment_Field.grid			(row = 10, column = 0)
+		self.Comment_Field.grid			(row = 10, column = 0, sticky = 'nesw', columnspan = 4)
 
 #############################################  ATOMS, DROPDOWN and LETTERS   #####################################################
 
