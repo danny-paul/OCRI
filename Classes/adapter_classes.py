@@ -1,5 +1,3 @@
-
-from collections import defaultdict
 from Classes.graph import Graph
 from Classes.bonds import Bond, SingleBond, DoubleBond, TripleBond
 from Classes.atom import Atom
@@ -142,22 +140,6 @@ class mapped_edge:
 	def __str__(self):
 		temp_str = '(' + str(self.x1) + ', ' + str(self.y1) + '), ' + '(' + str(self.x2) + ', ' + str(self.y2) + ') m=' + str(self.slope) + ' type:' + self.type_is
 		return temp_str
-			
-
-class edge_map:
-	def __init__(self, edge_list = list[mapped_edge], edgeless_nodes = list[mapped_node]):
-		self.graph = defaultdict(set) # key = edge, value = set of atoms (2)
-		self.edge_list = edge_list
-		self.edgeless_nodes = edgeless_nodes
-			
-	def add_edge(self, edge: mapped_edge):
-		print()
-		
-	def associate_node_with_edge(self, edge: mapped_edge):
-		print()
-
-	def __str__(self):
-		return ''
 			
 
 def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list[mapped_node])->Graph:

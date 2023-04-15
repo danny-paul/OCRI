@@ -14,7 +14,7 @@ from Classes.bonds import DoubleBond
 from Classes.bonds import TripleBond
 from Classes.atom import Atom
 import Classes.constants as CONSTANT
-from Classes.adapter_classes import mapped_edge, mapped_node, edge_map, translate_molecule
+from Classes.adapter_classes import translate_molecule
 import Image_Recognition.Recognizer as Recognizer
 import time
 """

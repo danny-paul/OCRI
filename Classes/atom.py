@@ -60,7 +60,6 @@ class Atom(object):
 		is_atom_polyatomic: bool
 
 		try:
-			print(type)
 			CONSTANT.POLYATOMIC_SYMBOL_TO_NAME_DICT[type]
 			is_atom_polyatomic = True
 		except KeyError:

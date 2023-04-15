@@ -17,17 +17,6 @@ class Bond(object):
 	
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
 		raise NotImplementedError
-	
-	# Method to restore valence count to connected atoms and delete instance (self)
-	# def delete_bond(self):
-	# 	update_success: bool = False
-
-	# 	for atom in self.atoms:
-	# 		curr_valence_count = atom.get_shared_val_electrons()
-	# 		print(curr_valence_count, self.electron_cost) # test
-	# 		update_success = atom.set_shared_val_electrons(curr_valence_count + self.electron_cost)
-	# 		if not update_success:
-	# 			raise NameError("Could not delete the respective bonds")
 		
 	def __str__(self):
 		raise NotImplementedError
@@ -56,7 +45,6 @@ class CovalentBond(Bond):
 			bond_error = "\tDesired Bond:\t" + str(self.__class__.__name__)
 			raise NameError("Error: Atoms unable to bond\n\tDetails: \n" + atom_error_one + atom_error_two + bond_error)
 		else:
-			#else is here because it was still sharing the electrons when the atoms couldn't bond sometimes
 			super().__init__(atom_one, atom_two, electron_cost)
 			self.share_electrons()
 
@@ -74,7 +62,6 @@ class CovalentBond(Bond):
 			atom_new_total_elec_count = atom.get_shared_val_electrons() + atom.get_base_val_electrons() + self.get_electron_bond_cost()
 
 			if atom_new_total_elec_count > atom.get_max_valence_electrons():
-				#print('atom_new_total_elec_count: ' + str(atom_new_total_elec_count)) # testing
 				error_in_atom = "Atom " + str(atom_error_dict[index]) + " contains the problem\n"
 				atom_error_one = "Atom One:\n\t" + str(atoms[0]) + "\n"
 				atom_error_two = "Atom Two:\n\t" + str(atoms[1]) + "\n"
@@ -101,7 +88,6 @@ class CovalentBond(Bond):
 			atom_new_shared_elec_count = atom.get_shared_val_electrons() - self.get_electron_bond_cost()
 
 			if (atom_new_shared_elec_count < 0):
-				# print('atom_new_shared_elec_count: ' + str(atom_new_shared_elec_count)) # testing
 				error_in_atom = "Atom " + str(atom_error_dict[index]) + " contains the problem\n"
 				atom_error_one = "Atom One:\n\t" + str(atoms[0]) + "\n"
 				atom_error_two = "Atom Two:\n\t" + str(atoms[1]) + "\n"
@@ -116,10 +102,6 @@ class CovalentBond(Bond):
 	@staticmethod
 	def impossible_bonding(atom_one: Atom, atom_two: Atom) -> bool:
 		impossible_bond: bool = False
-
-		# if atom_one.get_type() == atom_two.get_type():
-		# 	if CONSTANT.CANNOT_BOND_TO_SAME_TYPE[atom_one.get_type()]:
-		# 		impossible_bond = True
 
 		# cannot be the same atom instance (impossible in nature)
 		if atom_one == atom_two:
@@ -141,12 +123,10 @@ class CovalentBond(Bond):
 		too_few_electrons: bool = atom_one_elec_remaining < 0 or atom_two_elec_remaining < 0
 		too_many_electrons: bool = atom_one_total_electrons > atom_one.get_max_valence_electrons() or atom_two_total_electrons > atom_two.get_max_valence_electrons()
 
-		#print('atom_one_elec_available: ' + str(atom_one_elec_remaining) + '\n' + 'atom_two_elec_available: ' + str(atom_two_elec_remaining) + '\n' + 'electron_bond_cost: ' + str(electron_bond_cost)) # testing
 		if valid_bond:
 			if too_few_electrons or too_many_electrons:
 				valid_bond = False
 				
-		#print('valid_bond: ' + str(valid_bond) + '\n') # testing
 		return valid_bond
 
 	def __str__(self):
@@ -156,7 +136,6 @@ class CovalentBond(Bond):
 class SingleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
 		# hydrogen will be the only exception with 1 valence electron
-		# self.electron_cost = CONSTANT.SINGLE_BOND_COST 
 		super().__init__(atom_one, atom_two, CONSTANT.SINGLE_BOND_COST)
 			
 	def get_electron_bond_cost(self):
@@ -168,7 +147,6 @@ class SingleBond(CovalentBond):
 class DoubleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
 		super().__init__(atom_one, atom_two, CONSTANT.DOUBLE_BOND_COST)
-		# self.electron_cost = CONSTANT.DOUBLE_BOND_COST
 	
 	def can_atoms_form_bond(self) -> bool:
 		pass
@@ -179,7 +157,6 @@ class DoubleBond(CovalentBond):
 class TripleBond(CovalentBond):
 	def __init__(self, atom_one: Atom, atom_two: Atom):
 		super().__init__(atom_one, atom_two, CONSTANT.TRIPLE_BOND_COST)
-		self.electron_cost = CONSTANT.TRIPLE_BOND_COST
 	
 	def can_atoms_form_bond(self, atom_one: Atom, atom_two: Atom) -> bool:
 		pass

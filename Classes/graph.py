@@ -5,8 +5,6 @@ from Classes.bonds import Bond
 from Classes.bonds import CovalentBond
 import Classes.constants as CONSTANT
 
-import pprint # used in debugging sections
-
 class Graph:
 	def __init__(self, bonds: list[Bond] = []):
 		self.graph = defaultdict(set)
@@ -138,16 +136,11 @@ class Graph:
 	# Associates the instance of a Atom or Bond with its common name.
 	# Eg: 0x443 may be a carbon atom, but this maps it to an easily identifiable english name such as Carbon 1.
 	def add_mapped_address(self, entity):
-		# print('\n\n\n')
-		# print('entity is:' + str(type(entity)))
-		# print(str(entity))
 		if not type(entity) == Atom:
-			# bond
-			# print("if statemnet, is bond\n")
+			# is bond
 			type_is = CONSTANT.BOND_NAMES_ARR[entity.get_electron_bond_cost()] # string of type
 		else:
-			# atom
-			# print("else statement, is atom\n")
+			# is atom
 			type_is = entity.get_type_full()
 
 		entity_is_mapped: bool = False

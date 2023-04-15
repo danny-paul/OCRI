@@ -1,55 +1,24 @@
-# You cannot declare constants in python, so this is the next best thing
-
 # Bond costs for each atom in the bond
 SINGLE_BOND_COST = 1
-#SINGLE_BOND_COST_HYDROGEN = 1 # hydrogen costs 1 electron only
 DOUBLE_BOND_COST = 2
 TRIPLE_BOND_COST = 3
 BOND_NAMES_ARR = ['IndexZeroPlaceholder', 'Single Bond', 'Double Bond', 'Triple Bond']
 
-# Max electron count for atoms
-CARBON_FULL_ELEC_COUNT = 8
-CARBON_VAL_ELEC_COUNT = 4
-
-SILICON_FULL_ELEC_COUNT = 8
-SILICON_VAL_ELEC_COUNT = 4
-
-OXYGEN_FULL_ELEC_COUNT = 8
-OXYGEN_VAL_ELEC_COUNT = 6
-
-SULFUR_VAL_ELEC_COUNT = 6
-
-NITROGEN_FULL_ELEC_COUNT = 8
-NITROGEN_VAL_ELEC_COUNT = 5
-
-POTASSIUM_VAL_ELEC_COUNT = 5
-
-HELIUM_VAL_ELEC_COUNT = 2
-MAGNESIUM_VAL_ELEC_COUNT = 2
-
-HYDROGEN_VAL_ELEC_COUNT = 1 
-HYDROGEN_FULL_ELEC_COUNT = 2
-
-# CANNOT_BOND_TO_SAME_TYPE = {
-# 	"He": True,
-# 	"C": False,
-# 	"H": False,
-# 	"B": False,
-# 	"O": False
-# }
-
+# Max electrons that an atom can hold
 ATOM_FULL_ELEC_COUNT = {
     'B':8, 'C':8, 'c':8, 'N': 8, 'O':8, 'F':8,
     'Si':8, 'P':8, 'S':8, 'Cl':8, 
     'Br':8, 'H':2
 }
 
+# electrons that an atom has by default
 ATOM_UNBONDED_VAL_ELEC_COUNT = {
     'B':3, 'C':4, 'c':4, 'N': 5, 'O':6, 'F':7,
     'Si':4, 'P':5, 'S':6, 'Cl':7,
     'Br':7, 'H':1
 }
 
+# mapping of atom name --> chemical symbol
 ATOM_NAME_TO_SYMBOL_DICT = {
 	"Hydrogen":"H", "Carbon": "C",
     "Boron":"B", "Nitrogen":"N", 
@@ -59,6 +28,7 @@ ATOM_NAME_TO_SYMBOL_DICT = {
     "Chlorine":"Cl", "Bromine":"Br"
 }
 
+# mapping of atom chemical symbol --> name
 ATOM_SYMBOL_TO_NAME_DICT = {
     "H":"Hydrogen", "C":"Carbon",
     "B":"Boron", "N":"Nitrogen",
@@ -68,6 +38,7 @@ ATOM_SYMBOL_TO_NAME_DICT = {
     "Cl":"Chlorine", "Br":"Bromine"
 }
 
+# mapping of polyatomic symbol --> name (without charges)
 POLYATOMIC_SYMBOL_TO_NAME_DICT = {
     'SO4': 'Sulfate',
     'HSO4': 'Hydrogen Sulfate',
@@ -90,6 +61,7 @@ POLYATOMIC_SYMBOL_TO_NAME_DICT = {
     'C2O4': 'Oxalate'
 }
 
+# mapping of polyatomic chemical symbol without charges --> base available electrons
 POLYATOMIC_UNBONDED_VAL_ELEC_COUNT = {
     'SO4': 2,
     'HSO4': 1,
@@ -112,6 +84,7 @@ POLYATOMIC_UNBONDED_VAL_ELEC_COUNT = {
     'C2O4': 2
 }
 
+# mapping of polyatomic chemical symbol without charges --> max allowed electrons
 POLYATOMIC_FULL_ELEC_COUNT = {
     'SO4': 4,
     'HSO4': 2,
@@ -134,6 +107,8 @@ POLYATOMIC_FULL_ELEC_COUNT = {
     'C2O4': 4
 }
 
+
+# mapping of front end unicode representations of polyatomics --> chemical symbol (without charges)
 FRONT_END_TO_BACKEND_POLYATOMIC = {
 		"SO\u2084\u00B2\u207B": "SO4",
 		"HSO\u2084\u207B": "HSO4",
@@ -156,6 +131,7 @@ FRONT_END_TO_BACKEND_POLYATOMIC = {
 		"C\u2082O\u2084\u207B\u00B2": "C2O4"
 }
 
+# mapping of front end unicode representations of polyatomics --> front end unicode representations without charges (but with subscripts)
 POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES = {
 		"SO\u2084\u00B2\u207B": "SO\u2084",
 		"HSO\u2084\u207B": "HSO\u2084",
@@ -177,9 +153,3 @@ POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES = {
 		"CO\u2083\u00B2\u207B": "CO\u2083",
 		"C\u2082O\u2084\u207B\u00B2": "C\u2082O\u2084"
 }
-#CO3--> bonding doesnt track, but does move
-#ClO3--> bonding & doesnt move
-#C2O4--> bonding but does move
-
-
-#ClO2 --> bonding and does not move

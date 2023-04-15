@@ -13,11 +13,8 @@ from matplotlib import cm
 import math
 
 import os
-import pprint
 
-from collections import defaultdict
-
-from Classes.adapter_classes import mapped_edge, mapped_node, edge_map
+from Classes.adapter_classes import mapped_edge, mapped_node
 import Classes.constants as CONSTANT
 
 #global for testing
