@@ -164,6 +164,7 @@ class Gui_Edit_Molecule():
 			# append polyatomic with subscripts but WITHOUT charges
 			print('CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]:\t', str(self.selected_option), '\t' , str(CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]))
 			temp_option = CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]
+			#test if letter is being placed in a letter. If it is, then change the existing letter instead
 			self.textbox = self.canvas.create_text(event.x, event.y, text=temp_option, font=("Arial", 20), tags="letter")	
 		except KeyError:
 			# not polyatomic, change nothing
@@ -372,7 +373,6 @@ class Gui_Edit_Molecule():
 		self.clear_canvas()
 		try:
 			mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
-			print(mapped_node_arr)
 			self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
 			print(self.graph)
 			self.canvas.unbind("<ButtonPress-1>")
@@ -685,7 +685,7 @@ class Gui_Edit_Molecule():
 		self.btn_clear.configure(state = tk.DISABLED)
 		self.btn_import_file.configure(state = tk.DISABLED)
 		self.btn_photo.configure(state = tk.DISABLED)
-		self.btn_quit.configure(state = tk.DISABLED)
+		#self.btn_quit.configure(state = tk.DISABLED)
 		self.dropdown1.configure(state = tk.DISABLED)
 		self.dropdown2.configure(state = tk.DISABLED)
 
@@ -1156,6 +1156,8 @@ class Gui_Edit_Molecule():
 		self.endConnected = False
 		self.line_instance = None
 		self.canvas.bind("<Button-1>", self.on_click_bond)
+		self.canvas.unbind("<B1-Motion>")
+		self.canvas.unbind("<ButtonRelease-1>")
 		self.startLetter = -1
 		self.endLetter = -1
 		self.Comment_Field.delete(0, "end") # clears for potential bond errors
@@ -1366,10 +1368,12 @@ class Gui_Edit_Molecule():
 			self.startConnected = False
 			self.endConnected = False
 			self.line_instance = 1
-			
 			self.start = None
 			self.end = None
 			self.enable_buttons()
+			#self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
+			#self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
+			#self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
 		else:
 			self.create_bond()
 	

@@ -169,7 +169,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		label = labelNames[i]
 		#draw the prediction on the image and it's probability
 		label_text = f"{label}, {prob * 100:.1f}%"
-		if (prob >= 0.7) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.10):
+		if (prob >= 0.6) and (w > 5) and (h > 8) and (h/w < 5) and (w/h < 1.10):
 			cv2.rectangle(cropped, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			#cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
 			cv2.putText(cropped, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
@@ -188,7 +188,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		newLetterBoxes = []
 		for letterBox in letterBoxes:
 			x, y, w, h, label = letterBox
-			if (label != 'n' and h < 1.40*median) or (label == 'n' and h < 1.25*median):
+			if (label != 'n' and h < 1.50*median) or (label == 'n' and h < 1.25*median):
 				newLetterBoxes.append(letterBox)
 				#put white rectangle over letter so it is ignored in line segment detection
 				cv2.rectangle(cropped2, (x, y), (x + w, y + h), (255, 255, 255), -1)
@@ -305,7 +305,7 @@ def modifyPreds(pred):
 	pred[25] = pred[25]         #P
 	pred[26] = 0                #Q  not used
 	pred[27] = 0	            #R
-	pred[28] = 0	            #S
+	pred[28] = pred[28]	        #S
 	pred[29] = 0                #T
 	pred[30] = 0                #U
 	pred[31] = 0                #V
@@ -536,9 +536,9 @@ def mapEdges(letter_boxes, lines):
 				notMatched2 = False
 
 		if notMatched1:
-			mapped_node_arr.append(mapped_node(line.x1 - avgW/2, line.y1 - avgH/2, avgW, avgH, 'C'))
+			mapped_node_arr.append(mapped_node(line.x1 - 1.2*avgW/2, line.y1 - 1.2*avgH/2, 1.2*avgW, 1.2*avgH, 'C'))
 		if notMatched2:
-			mapped_node_arr.append(mapped_node(line.x2 - avgW/2, line.y2 - avgH/2, avgW, avgH, 'C'))
+			mapped_node_arr.append(mapped_node(line.x2 - 1.2*avgW/2, line.y2 - 1.2*avgH/2, 1.2*avgW, 1.2*avgH, 'C'))
 
 	# Initialize a 2d array full of 0's
 	edge_list = [['+']*len(mapped_node_arr) for i in range(len(lines))]
@@ -871,12 +871,6 @@ def condenseLines(linesArg, avgSquare):
 			lines.pop(ii)
    
 	return condensedLines
-
-
-
-						
-
-
 
 
 

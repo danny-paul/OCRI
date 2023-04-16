@@ -220,6 +220,14 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 	recognized_graph = Graph(bonds)
 	recognized_graph.add_nodes_via_atom_list(unbound_atoms)
 
+	#remove unbonded carbons
+	#atoms_to_remove = []
+	#list_of_atoms = recognized_graph.get_atom_list()
+	#for atom in list_of_atoms:
+	#	if atom.get_type() == "C" and len(recognized_graph.get_bonds_to_atom(atom)) == 0:
+	#		atoms_to_remove.append(atom)
+	#recognized_graph.delete_atoms_via_atom_list(atoms_to_remove)
+
 	return recognized_graph
 
 	
