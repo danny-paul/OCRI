@@ -417,6 +417,7 @@ class Gui_Edit_Molecule():
 			self.Comment_Field.delete(0, "end")
 			self.Comment_Field.insert(0, "Import canceled")
 			self.translate_enable_buttons()
+			self.canvas_cleared()
 			popup.destroy()
 			self.canvas.delete("all")
 

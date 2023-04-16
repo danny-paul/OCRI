@@ -101,32 +101,45 @@ class CovalentBond(Bond):
 	# Method to determine impossible bonding on issues OTHER than valence electron count (eg: same atom bonded)
 	@staticmethod
 	def impossible_bonding(atom_one: Atom, atom_two: Atom) -> bool:
-		impossible_bond: bool = False
+		try:
+			impossible_bond: bool = False
 
-		# cannot be the same atom instance (impossible in nature)
-		if atom_one == atom_two:
-			impossible_bond = True
+			# cannot be the same atom instance (impossible in nature)
+			if atom_one == atom_two:
+				impossible_bond = True
 
-		return impossible_bond
+			return impossible_bond
+		except NameError:
+			raise NameError("You cannot bond to the same atom!")
 
 	# Return boolean on ability of two parameter atoms ablity to bond. Since static must include electron count (cannot self.get())
 	@staticmethod
 	def can_atoms_form_bond(atom_one: Atom, atom_two: Atom, electron_bond_cost: int) -> bool:
-		valid_bond: bool = not CovalentBond.impossible_bonding(atom_one, atom_two)
-
+		try:
+			valid_bond: bool = not CovalentBond.impossible_bonding(atom_one, atom_two)
+		except NameError as e:
+			raise NameError(e)
+		
 		atom_one_elec_remaining = atom_one.get_base_val_electrons() - atom_one.get_shared_val_electrons() - electron_bond_cost
 		atom_two_elec_remaining = atom_two.get_base_val_electrons() - atom_two.get_shared_val_electrons() - electron_bond_cost
 
 		atom_one_total_electrons = atom_one.get_base_val_electrons() + atom_one.get_shared_val_electrons() + electron_bond_cost
 		atom_two_total_electrons = atom_two.get_base_val_electrons() + atom_two.get_shared_val_electrons() + electron_bond_cost
 
-		too_few_electrons: bool = atom_one_elec_remaining < 0 or atom_two_elec_remaining < 0
-		too_many_electrons: bool = atom_one_total_electrons > atom_one.get_max_valence_electrons() or atom_two_total_electrons > atom_two.get_max_valence_electrons()
+		atom_one_too_few_electrons: bool = atom_one_elec_remaining < 0
+		atom_two_too_few_electrons: bool = atom_two_elec_remaining < 0
+		atom_one_too_many_electrons: bool = atom_one_total_electrons > atom_one.get_max_valence_electrons()
+		atom_two_too_many_electrons: bool = atom_two_total_electrons > atom_two.get_max_valence_electrons()
 
-		if valid_bond:
-			if too_few_electrons or too_many_electrons:
-				valid_bond = False
-				
+		if atom_one_too_few_electrons:
+			raise NameError(atom_one.get_type_full() + ' does not have enough electrons to share to form the ' + CONSTANT.BOND_NAMES_ARR[electron_bond_cost].lower())
+		if atom_two_too_few_electrons:
+			raise NameError(atom_two.get_type_full() + ' does not have enough electrons to share to form the ' + CONSTANT.BOND_NAMES_ARR[electron_bond_cost].lower())
+		if atom_one_too_many_electrons:
+			raise NameError(atom_one.get_type_full() + ' has a stable outer shell with ' + str(atom_one.get_max_valence_electrons()) + ' valence electrons. Therefore, cannot accept more electrons to form ' + CONSTANT.BOND_NAMES_ARR[electron_bond_cost].lower())
+		if atom_two_too_many_electrons:
+			raise NameError(atom_two.get_type_full() + ' has a stable outer shell with ' + str(atom_two.get_max_valence_electrons()) + ' valence electrons. Therefore, cannot accept more electrons to form ' + CONSTANT.BOND_NAMES_ARR[electron_bond_cost].lower())
+
 		return valid_bond
 
 	def __str__(self):
