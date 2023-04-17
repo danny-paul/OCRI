@@ -338,7 +338,7 @@ class Gui_Edit_Molecule():
 	# Command for translate image button
 	def send_image(self):
 		self.Comment_Field.delete(0, "end")
-		self.Comment_Field.insert(0, "Image transferred to recognizer")
+		self.Comment_Field.insert(0, "Image is being translated. Please wait...")
 
 		#calculate crop dimensions
 		imageWidth, imageHeight = self.PILimage.size
@@ -372,14 +372,16 @@ class Gui_Edit_Molecule():
 		#send data to the recognizer
 		self.clear_canvas()
 		try:
-			mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
-			self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
-			print(self.graph)
 			self.canvas.unbind("<ButtonPress-1>")
 			self.canvas.unbind("<B1-Motion>")
 			self.canvas.unbind("<ButtonRelease-1>")
+			mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
+			self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
+			print(self.graph)
 			self.translate_enable_buttons()
 			self.place_atoms_into_canvas()
+			self.Comment_Field.delete(0, "end")
+			self.Comment_Field.insert(0, "Image Recognized")
 		except ValueError:
 			self.canvas.unbind("<ButtonPress-1>")
 			self.canvas.unbind("<B1-Motion>")

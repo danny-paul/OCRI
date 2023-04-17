@@ -103,11 +103,11 @@ class mapped_edge:
 			matched: bool = False
 			
 			contained_within_x_perimeter_one: bool = \
-				x > self.perimeter_mid_point["top_left_x"] and \
-				x < self.perimeter_mid_point["top_right_x"]
+				x > self.perimeter_mid_point["top_left_x"] - 20 and \
+				x < self.perimeter_mid_point["top_right_x"] + 20
 			contained_within_y_perimeter_one: bool = \
-				y > self.perimeter_mid_point['top_left_y'] and \
-				y < self.perimeter_mid_point['bottom_left_y']
+				y > self.perimeter_mid_point['top_left_y'] - 20 and \
+				y < self.perimeter_mid_point['bottom_left_y'] + 20
 	
 			if contained_within_x_perimeter_one and contained_within_y_perimeter_one:
 				matched = True

@@ -519,6 +519,7 @@ def mapEdges(letter_boxes, lines):
 						exists_as_value = True
 			if not exists_as_value:
 				new_edge_set[line] = line.related_edges
+	
 
 	# replace with minimized edge list
 	mapped_edge_arr = new_edge_set.keys()
@@ -536,9 +537,9 @@ def mapEdges(letter_boxes, lines):
 				notMatched2 = False
 
 		if notMatched1:
-			mapped_node_arr.append(mapped_node(line.x1 - 1.2*avgW/2, line.y1 - 1.2*avgH/2, 1.2*avgW, 1.2*avgH, 'C'))
+			mapped_node_arr.append(mapped_node(line.x1 - 1.3*avgW/2, line.y1 - 1.3*avgH/2, 1.3*avgW, 1.3*avgH, 'C'))
 		if notMatched2:
-			mapped_node_arr.append(mapped_node(line.x2 - 1.2*avgW/2, line.y2 - 1.2*avgH/2, 1.2*avgW, 1.2*avgH, 'C'))
+			mapped_node_arr.append(mapped_node(line.x2 - 1.3*avgW/2, line.y2 - 1.3*avgH/2, 1.3*avgW, 1.3*avgH, 'C'))
 
 	# Initialize a 2d array full of 0's
 	edge_list = [['+']*len(mapped_node_arr) for i in range(len(lines))]
@@ -549,8 +550,7 @@ def mapEdges(letter_boxes, lines):
 	for line in mapped_edge_arr:
 		for node in mapped_node_arr:
 			if node.contained_in_boundaries(line.x1, line.y1) and node.contained_in_boundaries(line.x2, line.y2):
-				temporaryCodeDeleteLater = 1
-				#I want to delete the line here.
+				pass
 			elif node.contained_in_boundaries(line.x1, line.y1):
 				# update node list and bond list
 				line.related_nodes.add(node)
@@ -569,6 +569,8 @@ def mapEdges(letter_boxes, lines):
 		index_row += 1
 		index_col = 0
 
+	for edge in edge_list:
+		print(edge)
 	return mapped_node_arr, mapped_edge_arr
 
 # get combine touching letterboxes to form polyatomic and multicharacter elements
@@ -774,8 +776,8 @@ def filterLetterBoxes(letterBoxes):
 				break
 		label = newLabel
 
-		#only keep the letterbox if it isn't empty
-		if(len(label) > 0):
+		#only keep the letterbox if it isn't empty or I (I is only used for multicharacter elements)
+		if(len(label) > 0 and label != "I"):
 			newLetterBoxes.append((x, y, w, h, label))
 
 	
@@ -792,11 +794,11 @@ def condenseLines(linesArg, avgSquare):
 		allLines.append(linesArg[i][0])
 
 	lines = []
-	# get rid of short lines, anything shorter than half the square width is gotten rid of
+	# get rid of short lines, anything shorter than the square's width is gotten rid of
 	for i in range(len(allLines)):
 		X1, Y1, X2, Y2 = allLines[i]
 		distance = math.sqrt((X1 - X2)**2 + (Y1 - Y2)**2)
-		if distance > avgSquare / 2:
+		if distance > avgSquare / 1.5:
 			lines.append(allLines[i])
 
 	condensedLines = []
