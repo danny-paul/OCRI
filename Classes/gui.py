@@ -151,6 +151,7 @@ class Gui_Edit_Molecule():
 		# clear if line was clicked
 		self.clear_line_creation()
 		self.Comment_Field.delete(0, "end")
+		self.Comment_Field.insert(0, "Click a location on the canvas to place the atom")
 
 		self.selected_option = option
 		self.canvas.bind("<Button-1>", self.place_letter)
@@ -632,7 +633,8 @@ class Gui_Edit_Molecule():
 
 	def exit_ocri(self):
 		self.disable_buttons()
-
+		self.btn_quit.configure(state = tk.DISABLED)
+		
 		def yes():
 			warning.destroy()
 			#GPIO.cleanup()
