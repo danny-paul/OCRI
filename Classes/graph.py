@@ -194,7 +194,7 @@ class Graph:
 			else:
 				self.mapped_address_counts[type_is] = count
 		except:
-			print('remove_mapped_address-->mapping for entity DNE, Entity: ' + str(entity))
+			pass
 
 	# Returns list of bond objects connected to the passed atom
 	def get_bonds_to_atom(self, atom: Atom) -> list[Bond]:
@@ -207,7 +207,7 @@ class Graph:
 				bond = atom_bond_tuple[1]
 				bond_list.append(bond)
 		else:
-			print('get_bonds_to_atom-->The following atom obj: "' + str(atom) + '" DNE in the graph')
+			pass
 
 		return bond_list 
 

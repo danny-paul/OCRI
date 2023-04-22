@@ -26,9 +26,6 @@ class mapped_node:
 		self.type_is = type_is
 		self.related_edges = set()
 	
-	def expand_boundaries_letterbox(self):
-		print()
-	
 	def contained_in_boundaries(self, x: float, y: float):
 			matched: bool = False
 			contained_within_x: bool = x > self.top_left_x and x < self.top_right_x
@@ -174,7 +171,7 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 				try:
 					atoms_in_node.append(Atom(letter))
 				except NameError:
-					print('Could not produce Atom class in adapter_classes.py. Issue letter: ', str(letter))
+					pass
 
 			# store partial structures to be combined later
 			partial_bonded_structures.append(connect_atoms_to_main(atoms_in_node, main_atom))
@@ -204,11 +201,11 @@ def translate_molecule(mapped_edge_arr: list[mapped_edge], mapped_node_arr: list
 					except:
 						pass
 			except KeyError:
-				print('Ooops something went wrong, node was not present in the node_atom_dict. Bond not created. Edge: ', str(edge))
+				pass
 			except:
 				pass
 		else:
-			print('Err: edge should have two related nodes. Edge: ', str(edge))
+			pass
 
 
 	# combine into one bond list

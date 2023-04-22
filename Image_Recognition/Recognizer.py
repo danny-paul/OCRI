@@ -17,9 +17,6 @@ import os
 from Classes.adapter_classes import mapped_edge, mapped_node
 import Classes.constants as CONSTANT
 
-#global for testing
-CBLB = []
-
 #Primary recognition function
 #used https://deepnote.com/@davidespalla/Recognizing-handwriting-with-Tensorflow-and-OpenCV-cfc4acf5-188e-4d3b-bdb5-a13aa463d2b0
 def recognize(cropX, cropY, cropX2, cropY2, imagePath):
@@ -36,9 +33,7 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 
 	#loads the model with the keras load_model function
 	#model_path = os.getcwd() + '\\Image_Recognition\\model_v3\\'
-	#print("Loading NN model...")
 	#model = load_model(model_path)
-	#print("Done")
 	#interpreter = tflite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter = tf.lite.Interpreter(model_path=os.getcwd()+'/Image_Recognition/model.tflite')
 	interpreter.allocate_tensors()
@@ -57,23 +52,14 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	image = np.array(lessContrast)
 	image = image[:, :, ::-1].copy()
 
-	plt.imshow(image)
-	plt.show()
-
 	#apply some filters and crop image
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	cropped = gray[crop1:crop2, crop3:crop4]
 	blurred = cv2.GaussianBlur(cropped, (5, 5), 0)
 
-	#for testing
-	#showImages(image, gray, cropped)
-
 	#convert to pure black and white
 	blurred = pureBlackWhite(blurred)
 	blurredCopy = blurred.copy()
-
-	plt.imshow(blurred,cmap=cm.binary_r)
-	plt.show()      #testing, show images used for recognition
 
 	#perform edge detection, find contours in the edge map, and sort the
 	#resulting contours from left-to-right
@@ -81,10 +67,6 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
 	cnts = sort_contours(cnts, method="left-to_right")[0]
-
-	figure = plt.figure(figsize=(7,7))
-	plt.axis('off')
-	# plt.imshow(edged,cmap=cm.binary_r)
 
 	chars = []
 	# loop over the contours
@@ -98,8 +80,6 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		
 		# resize largest dimension to input size
 		(tH, tW) = thresh.shape
-		#print('tH', tH)
-		#print('tW', tW)
 		if tW / tH < 28 and tH / tW < 28:  #for propper dimensions, no abnormally long or tall images
 			if tW > tH:
 				thresh = imutils.resize(thresh, width=28)
@@ -121,17 +101,6 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		padded = np.expand_dims(padded, axis=-1)
 		# append image and bounding box data in char list
 		chars.append((padded, (x, y, w, h)))
-
-	# plot isolated characters
-	# n_cols = 10
-	# n_rows = int(np.floor(len(chars)/ n_cols)+1)
-	# fig = plt.figure(figsize=(1.5*n_cols,1.5*n_rows))
-	# for i,char in enumerate(chars):
-	# 	ax = plt.subplot(n_rows,n_cols,i+1)
-	# 	# ax.imshow(char[0][:,:,0],cmap=cm.binary,aspect='auto')
-	# 	plt.axis('off')
-	# plt.tight_layout()
-	# #plt.show()
 
 	boxes = [b[1] for b in chars]
 	chars = np.array([c[0] for c in chars], dtype="float32")
@@ -195,7 +164,6 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 		letterBoxes = newLetterBoxes
 
 	WithChars = cropped     #image with characters, used for printing
-	cv2.imshow("Pred values", WithChars)
 	NoChars = cropped2      #image without characters, used for line segment detection
 
 	#NoChars = pureBlackWhite(NoChars)
@@ -210,42 +178,13 @@ def recognize(cropX, cropY, cropX2, cropY2, imagePath):
 	#Detect lines in the image
 	lines = lsd.detect(NoChars)[0] #position 0 of the retuned tuple are the detected lines
 
-	#cv2.imshow("LSD input image", NoChars)
-
 	#get rid of unnessessary lines
 	avgW, avgH = avgWH(letterBoxes)
 	avgSquare = (avgW + avgH)/2
 	lines = condenseLines(lines, avgSquare)
 
-	''' Draw lines for testing
-	for i in range(len(lines)):
-		X1, Y1, X2, Y2 = lines[i]
-		# print(X1, Y1, X2, Y2)
-		WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
-	'''
-	# for i in range(len(lines)):
-	# 	X1, Y1, X2, Y2 = lines[i]
-	# 	# print(X1, Y1, X2, Y2)
-	# 	WithChars = cv2.line(WithChars, (int(X1), int(Y1)), (int(X2), int(Y2)), (255, 0, 0), 2)
-	# plt.imshow(WithChars)
-	# plt.axis('on')
-	# plt.show()
-
 	# lines = minimize_extreme_edges_by_crop(crop3, crop1, crop4, crop2, lines) # x1, y1, x2, y2
 	mapped_node_arr, mapped_edge_arr = mapEdges(letterBoxes, lines)
-
-	print(CBLB)
-	for i in range(len(CBLB)):
-		x, y, w, h, label_text = CBLB[i]
-		x = int(x)
-		y = int(y)
-		w = int(w)
-		h = int(h)
-		cv2.rectangle(WithChars, (x, y), (x + w, y + h), (0, 255, 0), 2)
-		cv2.putText(WithChars, label_text, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-	#plt.imshow(WithChars)
-	plt.axis('on')
-	#plt.show()
 
 	return mapped_node_arr, mapped_edge_arr
 
@@ -336,28 +275,6 @@ def modifyPreds(pred):
 		pred[24] = pred[24] + 1
 
 	return pred
-
-
-#testing function
-def showImages(image, gray, cropped):
-	#%matplotlib inline #for Jupyter IPython notebook only
-	fig = plt.figure(figsize=(12,4))
-	ax = plt.subplot(1,4,1)
-	ax.imshow(image)
-	ax.set_title('original image')
-
-	ax = plt.subplot(1,4,2)
-	ax.imshow(gray,cmap=cm.binary_r)
-	ax.set_axis_off()
-	ax.set_title('grayscale image')
-
-	#crop the image: we has to be a custom crop for each image
-	ax = plt.subplot(1,4,3)
-	ax.imshow(cropped,cmap=cm.binary_r)
-	ax.set_axis_off()
-	ax.set_title('cropped image')
-
-	plt.show()
 
 #convert an image to pure black and white
 def pureBlackWhite(picture):
@@ -486,8 +403,6 @@ def mapEdges(letter_boxes, lines):
 
 	combinedLetterBoxes = combineBoxes(combinedLetterBoxes)			#combine nearby letterboxes
 	combinedLetterBoxes = filterLetterBoxes(combinedLetterBoxes)	#make sure labels are acceptable atoms
-	global CBLB
-	CBLB = combinedLetterBoxes		#pass to global for testing
 
 	#put the combinedLetterBoxes into the mapped_node_arr
 	for bound_x, bound_y, bound_w, bound_h, bound_letter in combinedLetterBoxes:
@@ -569,8 +484,6 @@ def mapEdges(letter_boxes, lines):
 		index_row += 1
 		index_col = 0
 
-	for edge in edge_list:
-		print(edge)
 	return mapped_node_arr, mapped_edge_arr
 
 # get combine touching letterboxes to form polyatomic and multicharacter elements
@@ -685,10 +598,6 @@ def filterLetterBoxes(letterBoxes):
 	#this shouldn't affect polyatomics
 	acceptableCharacters = CONSTANT.ATOM_SYMBOL_TO_NAME_DICT.keys()
 
-	for box in letterBoxes:
-		a, b, c, d, e = box
-		print(e)
-
 	newLetterBoxes = []
 	for letterBox in letterBoxes:
 		x, y, w, h, label = letterBox
@@ -752,8 +661,6 @@ def filterLetterBoxes(letterBoxes):
 				break
 		label = newLabel
 
-		print(label)
-
 		newLabel = ""
 		#only keep elements in the acceptable characters list
 		for i in range(len(label)):
@@ -779,9 +686,6 @@ def filterLetterBoxes(letterBoxes):
 		#only keep the letterbox if it isn't empty or I (I is only used for multicharacter elements)
 		if(len(label) > 0 and label != "I"):
 			newLetterBoxes.append((x, y, w, h, label))
-
-	
-	print("New Letter Boxes: ", newLetterBoxes)
 	
 	return newLetterBoxes
 
@@ -874,18 +778,6 @@ def condenseLines(linesArg, avgSquare):
    
 	return condensedLines
 
-
-
-'''
-for i in range(len(letterBoxes)):
-	print(letterBoxes[i][4], ' ', sep='', end='')
-
-
-for i in range(len(edgeMap)):
-	print()
-	for j in range(len(edgeMap[i])):
-		print(edgeMap[i][j], ' ', sep='', end='')
-'''
 
 
 

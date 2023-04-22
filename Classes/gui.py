@@ -163,7 +163,6 @@ class Gui_Edit_Molecule():
 		
 		try:
 			# append polyatomic with subscripts but WITHOUT charges
-			print('CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]:\t', str(self.selected_option), '\t' , str(CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]))
 			temp_option = CONSTANT.POLYATOMIC_UNICODE_CHARGES_TO_POLYATOMIC_NO_CHARGES[self.selected_option]
 			#test if letter is being placed in a letter. If it is, then change the existing letter instead
 			self.textbox = self.canvas.create_text(event.x, event.y, text=temp_option, font=("Arial", 20), tags="letter")	
@@ -191,7 +190,6 @@ class Gui_Edit_Molecule():
 		self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
 		self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
 		# reset dropdowns once letter is placed
-		print('self.atomDropDownName2:', str(self.atomDropDownName2), str('\n'))
 		if self.atomDropDownName2:
 			self.atomDropDownName2.set("Add PolyAtom")
 		if self.atomDropDownName1:
@@ -202,7 +200,6 @@ class Gui_Edit_Molecule():
 		self.selected = True
 		self.current_x = event.x
 		self.current_y = event.y
-		print(self.letterBondings)
 		for ID in self.letters:
 			x, y = self.canvas.coords(ID)
 			if event.x < x + 20 and event.x > x - 20 and event.y < y + 20 and event.y > y - 20:
@@ -378,7 +375,6 @@ class Gui_Edit_Molecule():
 			self.canvas.unbind("<ButtonRelease-1>")
 			mapped_node_arr, mapped_edge_arr = Recognizer.recognize(self.cropX, self.cropY, self.cropX2, self.cropY2, self.image_name)
 			self.graph = translate_molecule(mapped_edge_arr, mapped_node_arr)
-			print(self.graph)
 			self.translate_enable_buttons()
 			self.place_atoms_into_canvas()
 			self.Comment_Field.delete(0, "end")
@@ -533,7 +529,6 @@ class Gui_Edit_Molecule():
 	# Function for opening the file browser
 	def fileb_exe(self):
 		self.image_name = fido.askopenfilename(title = "Pick your image")
-		print(self.image_name)
 		if self.image_name:
 			self.clear_canvas()
 			self.PILimage = Image.open(self.image_name)
@@ -776,8 +771,6 @@ class Gui_Edit_Molecule():
 		for atom in listOfAtoms:
 			atomX, atomY = atom.get_mapped_position()
 			if atomX is not None and atomY is not None:
-				print(atomX, atomY)
-				print(atom.get_type())
 				atomX = atomX * convertWidth
 				atomY = atomY * convertHeight
 				TEXT = self.to_subscript(atom.get_type())
@@ -991,9 +984,6 @@ class Gui_Edit_Molecule():
 					self.triple_bond_list.append(bond)
 					self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
 					self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
-	
-		for letterBond in self.letterBondings:
-			print(letterBond)
 				
 		
 ######################################################   DELETE BUTTON  #####################################################
@@ -1091,7 +1081,6 @@ class Gui_Edit_Molecule():
 					self.letterBondings[i].pop(j)
 					break
 
-		print(self.graph)
 		if self.canvas.find_all() == ():
 			self.Comment_Field.delete(0, "end")
 			self.Comment_Field.insert(0, "Last item deleted, returning to regular functionality")
@@ -1273,9 +1262,7 @@ class Gui_Edit_Molecule():
 
 						# form bonds
 						try:
-							print("Before conditional")
 							if AddLine and self.startLetter != -1 and self.endLetter != -1:
-								print("within condiional")
 								# remove (possible) error messaages that are present
 								self.Comment_Field.delete(0, "end")
 								self.Comment_Field.insert(0, "Bond created")
@@ -1335,7 +1322,6 @@ class Gui_Edit_Molecule():
 								self.graph.add_bond_via_bond_obj(bond)
 
 						except NameError as err:
-							print(err)
 							self.Comment_Field.delete(0, "end")
 							self.Comment_Field.insert(0, err)
 							AddLine = False
@@ -1343,26 +1329,6 @@ class Gui_Edit_Molecule():
 				
 				# clear when second click occurs (regardless of success or failure)
 				self.clear_line_creation()
-
-
-				print('self.graph:\n')
-				print(self.graph)
-				print('\n')
-
-				print('structure of letterBondings:\n')
-				for index, value in enumerate(self.letterBondings):
-					print('index[', str(index), ']:', str(value))
-				
-				print('structure of single bond group')
-				for index, value in enumerate(self.singleBonds):
-					print('index[', str(index), ']: ', str(self.singleBonds[index]))
-
-				print('structure of double bond group')
-				for index, value in enumerate(self.doubleBonds):
-					print('index[', str(index), ']: ', str(self.doubleBonds[index]))
-				print('structure of each bond group')
-				for index, value in enumerate(self.tripleBonds):
-					print('index[', str(index), ']: ', str(self.tripleBonds[index]))
 		
 	# resets line creation
 	def clear_line_creation(self):
