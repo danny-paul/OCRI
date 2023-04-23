@@ -1149,9 +1149,9 @@ class Gui_Edit_Molecule():
 		self.lineEnd = None
 		self.endConnected = False
 		self.line_instance = None
-		self.canvas.bind("<Button-1>", self.on_click_bond)
-		self.canvas.unbind("<B1-Motion>")
-		self.canvas.unbind("<ButtonRelease-1>")
+		#self.canvas.unbind("<B1-Motion>")
+		#self.canvas.unbind("<ButtonRelease-1>")
+		self.canvas.bind("<ButtonRelease-1>", self.on_click_bond)
 		self.startLetter = -1
 		self.endLetter = -1
 		self.Comment_Field.delete(0, "end") # clears for potential bond errors
