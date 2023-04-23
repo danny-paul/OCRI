@@ -1,4 +1,3 @@
-
 import tkinter as tk
 import math
 from tkinter import NORMAL, font, Label, Toplevel, filedialog as fido
@@ -221,19 +220,6 @@ class Gui_Edit_Molecule():
 				x1, y1 = self.canvas.coords(self.textbox)
 				x2, y2 = self.canvas.coords(self.letterBondings[index][i][1])     
 				
-				# if self.letterBondings[index][i][1] == "STARTwithEND":
-				# 	x1, y1 = self.canvas.coords(self.textbox)
-				# 	x2, y2 = self.canvas.coords(self.letterBondings[index][i][2])                 
-				# elif self.letterBondings[index][i][1] == "ENDwithSTART":
-				# 	x1, y1 = self.canvas.coords(self.letterBondings[index][i][2])
-				# 	x2, y2 = self.canvas.coords(self.textbox)
-				# elif self.letterBondings[index][i][1] == "STARTnoEND":
-				# 	x1, y1 = self.canvas.coords(self.textbox)
-				# 	x2, y2 = self.letterBondings[index][i][2]
-				# elif self.letterBondings[index][i][1] == "ENDnoSTART":
-				# 	x1, y1 = self.letterBondings[index][i][2]
-				# 	x2, y2 = self.canvas.coords(self.textbox)
-
 				#calculate points for the line
 				if x1 - x2 != 0:
 					angle = math.atan((y1 - y2)/(x1 - x2))
@@ -251,12 +237,6 @@ class Gui_Edit_Molecule():
 					x2 = x2 - 20*math.cos(angle)
 					y1 = y1 + 20*math.sin(angle)
 					y2 = y2 - 20*math.sin(angle)
-
-				#reset anchors back to point if they aren't attached to a letter, no pivoting
-				# if self.letterBondings[index][i][1] == "STARTnoEND":
-				# 	x2, y2 = self.letterBondings[index][i][2]
-				# elif self.letterBondings[index][i][1] == "ENDnoSTART":
-				# 	x1, y1 = self.letterBondings[index][i][2]
 
 				#update line
 				for lineID in self.letterBondings[index][i][0]:
@@ -985,9 +965,7 @@ class Gui_Edit_Molecule():
 					self.letterBondings[self.letters.index(letter1)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter2))
 					self.letterBondings[self.letters.index(letter2)].append((self.tripleBonds[len(self.tripleBonds) - 1],  letter1))
 				
-		
 ######################################################   DELETE BUTTON  #####################################################
-
 
 	def activate_delete(self):
 		self.is_delete_active = not self.is_delete_active
@@ -1102,10 +1080,7 @@ class Gui_Edit_Molecule():
 		self.single_bond_list = []	#holds single bond objects for the graph
 		self.double_bond_list = []	#holds double bond objects for the graph
 		self.triple_bond_list = []	#holds triple bond objects for the graph
-		#kinda sucks to have 3 lists for the bonds, but it is much easier to manage the lists this way
 		self.graph = Graph([])
-
-
 
 ##################################################   BONDS and LINES   ##################################################
 	
@@ -1342,9 +1317,6 @@ class Gui_Edit_Molecule():
 			self.start = None
 			self.end = None
 			self.enable_buttons()
-			#self.canvas.tag_bind(self.textbox, '<Button-1>', self.select_textbox)
-			#self.canvas.tag_bind(self.textbox, '<B1-Motion>', self.move_textbox)
-			#self.canvas.tag_bind(self.textbox, '<ButtonRelease-1>', self.deselect_textbox)
 		else:
 			self.create_bond()
 	
